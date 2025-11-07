@@ -1,5 +1,6 @@
 package com.movieroulette.app.ui.screens.profile
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.movieroulette.app.ui.components.PrimaryButton
+import com.movieroulette.app.utils.ImageUtils
 import com.movieroulette.app.viewmodel.GroupViewModel
 import kotlinx.coroutines.launch
 
@@ -35,8 +38,39 @@ fun EditProfileScreen(
     val profileState by viewModel.userProfileState.collectAsState()
     
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
-    var imageUrlInput by remember { mutableStateOf("") }
-    var showUrlDialog by remember { mutableStateOf(false) }
+    var isUploading by remember { mutableStateOf(false) }
+    var uploadError by remember { mutableStateOf<String?>(null) }
+    
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            scope.launch {
+                isUploading = true
+                uploadError = null
+                
+                // Compress image
+                val compressResult = ImageUtils.compressImage(context, uri, maxSizeKB = 500)
+                if (compressResult.isFailure) {
+                    uploadError = "Error al comprimir imagen"
+                    isUploading = false
+                    return@launch
+                }
+                
+                // Upload and update
+                val uploadResult = viewModel.uploadAndUpdateUserAvatar(compressResult.getOrNull()!!)
+                if (uploadResult.isSuccess) {
+                    selectedImageUrl = uploadResult.getOrNull()
+                    uploadError = null
+                } else {
+                    uploadError = uploadResult.exceptionOrNull()?.message ?: "Error al subir imagen"
+                }
+                
+                isUploading = false
+            }
+        }
+    }
     
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
@@ -87,7 +121,9 @@ fun EditProfileScreen(
                             .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (selectedImageUrl != null) {
+                        if (isUploading) {
+                            CircularProgressIndicator()
+                        } else if (selectedImageUrl != null) {
                             AsyncImage(
                                 model = selectedImageUrl,
                                 contentDescription = "Avatar",
@@ -109,30 +145,31 @@ fun EditProfileScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
+
+                    // Error message
+                    if (uploadError != null) {
+                        Text(
+                            text = uploadError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    // URL Input Button
-                    OutlinedButton(
-                        onClick = { showUrlDialog = true },
-                        modifier = Modifier.fillMaxWidth()
+                    // Image Picker Button
+                    Button(
+                        onClick = { imagePickerLauncher.launch("image/*") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isUploading
                     ) {
-                        Text("Cambiar Foto (URL)")
-                    }
-                    
-                    if (selectedImageUrl != null && selectedImageUrl != state.profile.avatarUrl) {
-                        PrimaryButton(
-                            text = "Guardar Cambios",
-                            onClick = {
-                                scope.launch {
-                                    selectedImageUrl?.let { url ->
-                                        viewModel.updateUserAvatar(url)
-                                        navController.navigateUp()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        Icon(
+                            imageVector = Icons.Default.PhotoCamera,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Seleccionar Foto")
                     }
                 }
                 is GroupViewModel.UserProfileState.Loading -> {
@@ -147,40 +184,5 @@ fun EditProfileScreen(
                 else -> {}
             }
         }
-    }
-    
-    // URL Input Dialog
-    if (showUrlDialog) {
-        AlertDialog(
-            onDismissRequest = { showUrlDialog = false },
-            title = { Text("URL de la Imagen") },
-            text = {
-                OutlinedTextField(
-                    value = imageUrlInput,
-                    onValueChange = { imageUrlInput = it },
-                    label = { Text("https://...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (imageUrlInput.isNotBlank()) {
-                            selectedImageUrl = imageUrlInput
-                            imageUrlInput = ""
-                            showUrlDialog = false
-                        }
-                    }
-                ) {
-                    Text("Aceptar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUrlDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
     }
 }

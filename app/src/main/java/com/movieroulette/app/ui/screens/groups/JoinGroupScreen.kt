@@ -57,11 +57,6 @@ fun JoinGroupScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
-                text = "🎫",
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp)
-            )
-            
-            Text(
                 text = "Únete con código",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
@@ -76,7 +71,7 @@ fun JoinGroupScreen(
             AppTextField(
                 value = inviteCode,
                 onValueChange = {
-                    inviteCode = it.uppercase()
+                    inviteCode = it.filterNot(Char::isWhitespace).uppercase()
                     inviteCodeError = null
                 },
                 label = "Código de invitación",
@@ -98,10 +93,11 @@ fun JoinGroupScreen(
             PrimaryButton(
                 text = "Unirse al Grupo",
                 onClick = {
-                    if (inviteCode.isBlank()) {
+                    val sanitizedCode = inviteCode.trim()
+                    if (sanitizedCode.isBlank()) {
                         inviteCodeError = "El código es requerido"
                     } else {
-                        viewModel.joinGroup(inviteCode)
+                        viewModel.joinGroup(sanitizedCode)
                     }
                 },
                 isLoading = joinGroupState is GroupViewModel.JoinGroupState.Loading,

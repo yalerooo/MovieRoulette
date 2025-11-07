@@ -57,11 +57,6 @@ fun CreateGroupScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
-                text = "🎬",
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp)
-            )
-            
-            Text(
                 text = "Crea un grupo nuevo",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold

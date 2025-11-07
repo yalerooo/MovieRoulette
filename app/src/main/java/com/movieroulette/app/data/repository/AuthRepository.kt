@@ -25,15 +25,8 @@ class AuthRepository {
                     }
                 }
                 
-                // Verificar si el usuario necesita confirmar email
-                val currentUser = supabase.auth.currentUserOrNull()
-                if (currentUser == null) {
-                    // Si no hay sesión después de registro, intentar login
-                    supabase.auth.signInWith(Email) {
-                        this.email = email
-                        this.password = password
-                    }
-                }
+                // Cerrar la sesión automática si existe
+                supabase.auth.signOut()
                 
                 Result.success(Unit)
             } catch (e: Exception) {

@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +18,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -35,6 +40,8 @@ import com.movieroulette.app.viewmodel.MovieViewModel
 import com.movieroulette.app.viewmodel.GroupViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -186,6 +193,7 @@ fun GroupDetailScreen(
             }
         )
     }
+
 }
 
 @Composable
@@ -301,7 +309,7 @@ fun RouletteContent(
                                         delay(120)
                                     }
                                     onSelectedMovieChange(movies.random())
-                                    onHasSelectedMovieChange(true) // Fue seleccionada por el usuario
+                                    onHasSelectedMovieChange(true)
                                     onSpinningChange(false)
                                 }
                             }

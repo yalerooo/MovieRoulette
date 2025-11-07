@@ -53,4 +53,8 @@ class AuthViewModel : ViewModel() {
         object Success : AuthUiState()
         data class Error(val message: String) : AuthUiState()
     }
+
+    fun resetState() {
+        _uiState.value = AuthUiState.Idle
+    }
 }

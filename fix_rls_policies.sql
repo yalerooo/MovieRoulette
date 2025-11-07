@@ -119,3 +119,67 @@ CREATE POLICY "Group members can add ratings"
         )
         AND auth.uid() = user_id
     );
+
+DROP FUNCTION IF EXISTS public.join_group_by_code(TEXT);
+
+CREATE OR REPLACE FUNCTION public.join_group_by_code(p_invite_code TEXT)
+RETURNS SETOF public.groups
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    normalized_code TEXT := UPPER(TRIM(p_invite_code));
+    group_row public.groups%ROWTYPE;
+BEGIN
+    IF auth.uid() IS NULL THEN
+        RAISE EXCEPTION 'Debe iniciar sesión para unirse a un grupo';
+    END IF;
+
+    SELECT g.* INTO group_row
+    FROM public.groups AS g
+    WHERE g.invite_code = normalized_code
+    LIMIT 1;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Código de invitación no válido';
+    END IF;
+
+    IF public.is_group_member(group_row.id, auth.uid()) THEN
+        RAISE EXCEPTION 'Ya eres miembro de este grupo';
+    END IF;
+
+    INSERT INTO public.group_members (group_id, user_id, role)
+    VALUES (group_row.id, auth.uid(), 'member')
+    ON CONFLICT DO NOTHING;
+
+    RETURN NEXT group_row;
+    RETURN;
+END;
+$$;
+
+DROP FUNCTION IF EXISTS public.remove_group_member(UUID, UUID);
+
+CREATE OR REPLACE FUNCTION public.remove_group_member(p_group_id UUID, p_target_user UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF auth.uid() IS NULL THEN
+        RAISE EXCEPTION 'Debe iniciar sesión';
+    END IF;
+
+    IF NOT public.is_group_admin(p_group_id, auth.uid()) THEN
+        RAISE EXCEPTION 'Solo los administradores pueden eliminar miembros';
+    END IF;
+
+    DELETE FROM public.group_members
+    WHERE group_id = p_group_id AND user_id = p_target_user;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Miembro no encontrado en el grupo';
+    END IF;
+END;
+$$;

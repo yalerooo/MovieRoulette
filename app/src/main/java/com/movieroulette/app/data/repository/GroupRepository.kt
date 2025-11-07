@@ -1,15 +1,18 @@
 package com.movieroulette.app.data.repository
 
 import com.movieroulette.app.data.model.Group
-import com.movieroulette.app.data.model.GroupMember
 import com.movieroulette.app.data.model.GroupMemberWithProfile
 import com.movieroulette.app.data.model.UserProfile
 import com.movieroulette.app.data.remote.SupabaseConfig
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.rpc
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class GroupRepository {
     
@@ -80,41 +83,16 @@ class GroupRepository {
             try {
                 val userId = supabase.auth.currentUserOrNull()?.id
                     ?: return@withContext Result.failure(Exception("User not logged in"))
-                
-                // Find group by invite code
-                val group = supabase.from("groups")
-                    .select {
-                        filter {
-                            eq("invite_code", inviteCode.uppercase())
-                        }
-                    }
-                    .decodeSingleOrNull<Group>()
-                    ?: return@withContext Result.failure(Exception("Código de invitación no válido"))
-                
-                // Check if already a member
-                val existingMember = supabase.from("group_members")
-                    .select {
-                        filter {
-                            eq("group_id", group.id)
-                            eq("user_id", userId)
-                        }
-                    }
-                    .decodeSingleOrNull<GroupMember>()
-                
-                if (existingMember != null) {
-                    return@withContext Result.failure(Exception("Ya eres miembro de este grupo"))
+
+                val normalizedCode = inviteCode.trim().uppercase()
+
+                val params = buildJsonObject {
+                    put("p_invite_code", normalizedCode)
                 }
-                
-                // Add user as member
-                supabase.from("group_members")
-                    .insert(
-                        mapOf(
-                            "group_id" to group.id,
-                            "user_id" to userId,
-                            "role" to "member"
-                        )
-                    )
-                
+
+                val group = supabase.postgrest.rpc("join_group_by_code", params)
+                    .decodeSingle<Group>()
+
                 Result.success(group)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -231,14 +209,12 @@ class GroupRepository {
     suspend fun removeMemberFromGroup(groupId: String, userId: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                supabase.from("group_members")
-                    .delete {
-                        filter {
-                            eq("group_id", groupId)
-                            eq("user_id", userId)
-                        }
-                    }
-                
+                val params = buildJsonObject {
+                    put("p_group_id", groupId)
+                    put("p_target_user", userId)
+                }
+
+                supabase.postgrest.rpc("remove_group_member", params)
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)

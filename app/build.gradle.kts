@@ -87,6 +87,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.2")
     implementation("io.github.jan-tennert.supabase:auth-kt:3.0.2")
     implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.2")
+    implementation("io.github.jan-tennert.supabase:storage-kt:3.0.2")
 
     // Ktor (required by Supabase) - Compatible con Supabase 3.0.2
     implementation("io.ktor:ktor-client-android:3.0.1")
@@ -110,6 +111,9 @@ dependencies {
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // ExifInterface for image orientation
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
 
     // Accompanist (for system UI controller)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")

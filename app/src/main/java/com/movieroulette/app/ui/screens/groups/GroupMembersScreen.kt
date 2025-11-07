@@ -25,7 +25,6 @@ import com.movieroulette.app.data.model.GroupMemberWithProfile
 import com.movieroulette.app.ui.components.LoadingScreen
 import com.movieroulette.app.viewmodel.GroupDetailViewModel
 import com.movieroulette.app.viewmodel.GroupViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,8 +36,6 @@ fun GroupMembersScreen(
 ) {
     val membersState by viewModel.membersState.collectAsState()
     val groupsState by groupViewModel.groupsState.collectAsState()
-    val scope = rememberCoroutineScope()
-    
     var showDeleteDialog by remember { mutableStateOf<GroupMemberWithProfile?>(null) }
     
     LaunchedEffect(Unit) {
@@ -131,11 +128,8 @@ fun GroupMembersScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        scope.launch {
-                            viewModel.removeMember(groupId, member.userId)
-                            showDeleteDialog = null
-                            viewModel.loadMembers(groupId)
-                        }
+                        viewModel.removeMember(groupId, member.userId)
+                        showDeleteDialog = null
                     }
                 ) {
                     Text("Eliminar", color = MaterialTheme.colorScheme.error)

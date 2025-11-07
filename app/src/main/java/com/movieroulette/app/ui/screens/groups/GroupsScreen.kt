@@ -1,6 +1,7 @@
 package com.movieroulette.app.ui.screens.groups
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,11 +39,33 @@ fun GroupsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val userProfileState by viewModel.userProfileState.collectAsState()
+    val leaveGroupState by viewModel.leaveGroupState.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    var groupToLeave by remember { mutableStateOf<Group?>(null) }
+    var leavingGroupId by remember { mutableStateOf<String?>(null) }
     
     LaunchedEffect(Unit) {
         viewModel.loadGroups()
         viewModel.loadUserProfile()
+    }
+
+    LaunchedEffect(leaveGroupState) {
+        when (val state = leaveGroupState) {
+            GroupViewModel.LeaveGroupState.Success -> {
+                leavingGroupId = null
+                groupToLeave = null
+                viewModel.resetLeaveGroupState()
+                snackbarHostState.showSnackbar("Has salido del grupo")
+            }
+            is GroupViewModel.LeaveGroupState.Error -> {
+                leavingGroupId = null
+                groupToLeave = null
+                viewModel.resetLeaveGroupState()
+                snackbarHostState.showSnackbar(state.message)
+            }
+            else -> Unit
+        }
     }
     
     Scaffold(
@@ -124,7 +147,8 @@ fun GroupsScreen(
             ) {
                 Icon(Icons.Default.Add, "Crear grupo")
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -162,6 +186,7 @@ fun GroupsScreen(
                 }
                 
                 is GroupViewModel.GroupUiState.Success -> {
+                    val currentUserId = (userProfileState as? GroupViewModel.UserProfileState.Success)?.profile?.id
                     Column {
                         SecondaryButton(
                             text = "Unirse con código",
@@ -177,10 +202,19 @@ fun GroupsScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(state.groups) { group ->
+                                val canLeave = currentUserId != null && group.createdBy != currentUserId
+                                val isLeaving = leaveGroupState is GroupViewModel.LeaveGroupState.Loading && leavingGroupId == group.id
                                 GroupCard(
                                     group = group,
+                                    canLeave = canLeave,
+                                    isLeaving = isLeaving,
                                     onClick = {
                                         navController.navigate(Screen.GroupDetail.createRoute(group.id))
+                                    },
+                                    onLeaveRequest = {
+                                        if (!isLeaving && canLeave) {
+                                            groupToLeave = group
+                                        }
                                     }
                                 )
                             }
@@ -197,17 +231,65 @@ fun GroupsScreen(
             }
         }
     }
+
+    groupToLeave?.let { group ->
+        val isLeaving = leaveGroupState is GroupViewModel.LeaveGroupState.Loading
+        AlertDialog(
+            onDismissRequest = {
+                if (!isLeaving) {
+                    groupToLeave = null
+                }
+            },
+            title = { Text("Salir de ${group.name}") },
+            text = { Text("¿Seguro que quieres salir de este grupo?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        leavingGroupId = group.id
+                        groupToLeave = null
+                        viewModel.leaveGroup(group.id)
+                    },
+                    enabled = !isLeaving
+                ) {
+                    if (isLeaving) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                    } else {
+                        Text("Salir")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { groupToLeave = null },
+                    enabled = !isLeaving
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun GroupCard(
     group: Group,
-    onClick: () -> Unit
+    canLeave: Boolean,
+    isLeaving: Boolean,
+    onClick: () -> Unit,
+    onLeaveRequest: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = if (canLeave) {
+                    { onLeaveRequest() }
+                } else {
+                    null
+                }
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -251,6 +333,17 @@ fun GroupCard(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
+                if (canLeave) {
+                    Text(
+                        text = "Mantén pulsado para salir",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            if (isLeaving) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             }
         }
     }

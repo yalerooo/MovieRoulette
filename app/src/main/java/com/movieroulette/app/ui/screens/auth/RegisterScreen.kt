@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import com.movieroulette.app.ui.components.*
 import com.movieroulette.app.ui.navigation.Screen
 import com.movieroulette.app.viewmodel.AuthViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,17 +37,54 @@ fun RegisterScreen(
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
-    
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+
     val uiState by viewModel.uiState.collectAsState()
-    
-    LaunchedEffect(uiState) {
-        if (uiState is AuthViewModel.AuthUiState.Success) {
-            navController.navigate(Screen.Groups.route) {
-                popUpTo(Screen.Register.route) { inclusive = true }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiState.collectLatest { state ->
+            if (state is AuthViewModel.AuthUiState.Success) {
+                showConfirmationDialog = true
             }
         }
     }
-    
+
+    if (showConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showConfirmationDialog = false
+                viewModel.resetState()
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(Screen.Register.route) { inclusive = true }
+                }
+            },
+            title = { Text("¡Cuenta creada!") },
+            text = { 
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Tu cuenta ha sido creada exitosamente.")
+                    Text("Hemos enviado un enlace de verificación a tu correo electrónico.")
+                    Text(
+                        "Por favor, revisa tu bandeja de entrada (y la carpeta de spam) para activar tu cuenta antes de iniciar sesión.",
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmationDialog = false
+                        viewModel.resetState()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Register.route) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("Ir al inicio de sesión")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

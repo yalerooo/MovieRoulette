@@ -6,6 +6,7 @@ import com.movieroulette.app.data.model.Group
 import com.movieroulette.app.data.model.GroupMemberWithProfile
 import com.movieroulette.app.data.model.UserProfile
 import com.movieroulette.app.data.repository.GroupRepository
+import com.movieroulette.app.data.repository.StorageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class GroupViewModel : ViewModel() {
     
     val groupRepository = GroupRepository()
+    private val storageRepository = StorageRepository()
     
     private val _uiState = MutableStateFlow<GroupUiState>(GroupUiState.Loading)
     val uiState: StateFlow<GroupUiState> = _uiState.asStateFlow()
@@ -23,6 +25,9 @@ class GroupViewModel : ViewModel() {
     
     private val _joinGroupState = MutableStateFlow<JoinGroupState>(JoinGroupState.Idle)
     val joinGroupState: StateFlow<JoinGroupState> = _joinGroupState.asStateFlow()
+
+    private val _leaveGroupState = MutableStateFlow<LeaveGroupState>(LeaveGroupState.Idle)
+    val leaveGroupState: StateFlow<LeaveGroupState> = _leaveGroupState.asStateFlow()
     
     private val _groupsState = MutableStateFlow<GroupsState>(GroupsState.Loading)
     val groupsState: StateFlow<GroupsState> = _groupsState.asStateFlow()
@@ -73,6 +78,60 @@ class GroupViewModel : ViewModel() {
             }
         }
     }
+
+    /**
+     * Upload profile picture to Supabase Storage and update user avatar
+     */
+    suspend fun uploadAndUpdateUserAvatar(imageData: ByteArray): Result<String> {
+        return try {
+            // Upload to storage
+            val uploadResult = storageRepository.uploadProfilePicture(imageData)
+            if (uploadResult.isFailure) {
+                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Error al subir imagen"))
+            }
+
+            val imageUrl = uploadResult.getOrNull()!!
+
+            // Update user profile
+            val updateResult = groupRepository.updateUserAvatar(imageUrl)
+            if (updateResult.isFailure) {
+                return Result.failure(updateResult.exceptionOrNull() ?: Exception("Error al actualizar perfil"))
+            }
+
+            // Reload profile
+            loadUserProfile()
+            Result.success(imageUrl)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Upload group picture to Supabase Storage and update group image
+     */
+    suspend fun uploadAndUpdateGroupImage(groupId: String, imageData: ByteArray): Result<String> {
+        return try {
+            // Upload to storage
+            val uploadResult = storageRepository.uploadGroupPicture(imageData)
+            if (uploadResult.isFailure) {
+                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Error al subir imagen"))
+            }
+
+            val imageUrl = uploadResult.getOrNull()!!
+
+            // Update group
+            val updateResult = groupRepository.updateGroupImage(groupId, imageUrl)
+            if (updateResult.isFailure) {
+                return Result.failure(updateResult.exceptionOrNull() ?: Exception("Error al actualizar grupo"))
+            }
+
+            // Reload groups
+            loadUserGroups()
+            Result.success(imageUrl)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
     
     fun loadGroups() {
         viewModelScope.launch {
@@ -117,6 +176,21 @@ class GroupViewModel : ViewModel() {
             }
         }
     }
+
+    fun leaveGroup(groupId: String) {
+        viewModelScope.launch {
+            _leaveGroupState.value = LeaveGroupState.Loading
+
+            val result = groupRepository.leaveGroup(groupId)
+            _leaveGroupState.value = if (result.isSuccess) {
+                loadUserGroups()
+                loadGroups()
+                LeaveGroupState.Success
+            } else {
+                LeaveGroupState.Error(result.exceptionOrNull()?.message ?: "Error al salir del grupo")
+            }
+        }
+    }
     
     fun resetCreateGroupState() {
         _createGroupState.value = CreateGroupState.Idle
@@ -124,6 +198,10 @@ class GroupViewModel : ViewModel() {
     
     fun resetJoinGroupState() {
         _joinGroupState.value = JoinGroupState.Idle
+    }
+
+    fun resetLeaveGroupState() {
+        _leaveGroupState.value = LeaveGroupState.Idle
     }
     
     sealed class GroupUiState {
@@ -145,6 +223,13 @@ class GroupViewModel : ViewModel() {
         object Loading : JoinGroupState()
         data class Success(val group: Group) : JoinGroupState()
         data class Error(val message: String) : JoinGroupState()
+    }
+
+    sealed class LeaveGroupState {
+        object Idle : LeaveGroupState()
+        object Loading : LeaveGroupState()
+        object Success : LeaveGroupState()
+        data class Error(val message: String) : LeaveGroupState()
     }
     
     sealed class GroupsState {
@@ -182,7 +267,12 @@ class GroupDetailViewModel : ViewModel() {
     
     fun removeMember(groupId: String, userId: String) {
         viewModelScope.launch {
-            groupRepository.removeMemberFromGroup(groupId, userId)
+            val result = groupRepository.removeMemberFromGroup(groupId, userId)
+            if (result.isSuccess) {
+                loadMembers(groupId)
+            } else {
+                _membersState.value = MembersState.Error(result.exceptionOrNull()?.message ?: "Error al eliminar miembro")
+            }
         }
     }
     
