@@ -4,6 +4,7 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Login : Screen("login")
     object Register : Screen("register")
+    object SetUsername : Screen("set_username")
     object Groups : Screen("groups")
     object CreateGroup : Screen("create_group")
     object JoinGroup : Screen("join_group")
@@ -31,7 +32,9 @@ sealed class Screen(val route: String) {
     object MoviesList : Screen("movies_list/{groupId}/{status}") {
         fun createRoute(groupId: String, status: String) = "movies_list/$groupId/$status"
     }
+    object Profile : Screen("profile")
     object EditProfile : Screen("edit_profile")
+    object ManageFavorites : Screen("manage_favorites")
     object EditGroup : Screen("edit_group/{groupId}") {
         fun createRoute(groupId: String) = "edit_group/$groupId"
     }
@@ -39,4 +42,12 @@ sealed class Screen(val route: String) {
         fun createRoute(groupId: String) = "group_members/$groupId"
     }
     object Settings : Screen("settings")
+    object Friends : Screen("friends")
+    object SearchUsers : Screen("search_users")
+    object UserProfile : Screen("user_profile/{userId}") {
+        fun createRoute(userId: String) = "user_profile/$userId"
+    }
+    object Chat : Screen("chat/{userId}") {
+        fun createRoute(userId: String) = "chat/$userId"
+    }
 }

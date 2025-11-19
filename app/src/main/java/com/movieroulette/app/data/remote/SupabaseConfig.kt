@@ -7,6 +7,8 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
+import io.github.jan.supabase.functions.Functions
+import io.ktor.client.engine.okhttp.OkHttp
 
 object SupabaseConfig {
     
@@ -15,10 +17,18 @@ object SupabaseConfig {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY
         ) {
-            install(Auth)
+            // Configurar el engine HTTP con OkHttp ANTES de instalar plugins
+            httpEngine = OkHttp.create()
+            
+            install(Auth) {
+                // Configurar para que la sesión persista automáticamente
+                autoLoadFromStorage = true
+                autoSaveToStorage = true
+            }
             install(Postgrest)
             install(Realtime)
             install(Storage)
+            install(Functions)
         }
     }
 }

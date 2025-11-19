@@ -15,10 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.movieroulette.app.data.AppTheme
 import com.movieroulette.app.data.ThemeManager
+import com.movieroulette.app.data.AppLanguage
+import com.movieroulette.app.data.LanguageManager
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,11 +31,12 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val themeManager = remember { ThemeManager(context) }
-    val currentTheme by themeManager.currentTheme.collectAsState(initial = AppTheme.DEFAULT)
+    val currentTheme by themeManager.currentTheme.collectAsState(initial = AppTheme.BLUE)
+    val languageManager = remember { LanguageManager(context) }
+    val currentLanguage by languageManager.currentLanguage.collectAsState(initial = AppLanguage.SPANISH)
     val scope = rememberCoroutineScope()
     
     val themes = listOf(
-        AppTheme.DEFAULT,
         AppTheme.BLUE,
         AppTheme.RED,
         AppTheme.PINK,
@@ -42,12 +46,13 @@ fun SettingsScreen(
     )
     
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text(stringResource(com.movieroulette.app.R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(com.movieroulette.app.R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -63,7 +68,7 @@ fun SettingsScreen(
         ) {
             item {
                 Text(
-                    text = "Apariencia",
+                    text = stringResource(com.movieroulette.app.R.string.appearance),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -71,7 +76,7 @@ fun SettingsScreen(
             
             item {
                 Text(
-                    text = "Tema de color",
+                    text = stringResource(com.movieroulette.app.R.string.color_theme),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -91,6 +96,43 @@ fun SettingsScreen(
             }
             
             item {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+            
+            item {
+                Text(
+                    text = stringResource(com.movieroulette.app.R.string.language),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+            
+            item {
+                LanguageItem(
+                    language = AppLanguage.SPANISH,
+                    isSelected = currentLanguage == AppLanguage.SPANISH,
+                    onClick = {
+                        scope.launch {
+                            languageManager.setLanguage(AppLanguage.SPANISH)
+                        }
+                    }
+                )
+            }
+            
+            item {
+                LanguageItem(
+                    language = AppLanguage.ENGLISH,
+                    isSelected = currentLanguage == AppLanguage.ENGLISH,
+                    onClick = {
+                        scope.launch {
+                            languageManager.setLanguage(AppLanguage.ENGLISH)
+                        }
+                    }
+                )
+            }
+            
+            item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
@@ -104,7 +146,6 @@ fun ThemeItem(
     onClick: () -> Unit
 ) {
     val themeColor = when (theme) {
-        AppTheme.DEFAULT -> MaterialTheme.colorScheme.primary
         AppTheme.BLUE -> androidx.compose.ui.graphics.Color(0xFFADD8E6)
         AppTheme.RED -> androidx.compose.ui.graphics.Color(0xFFFFB3BA)
         AppTheme.PINK -> androidx.compose.ui.graphics.Color(0xFFF9CCCC)
@@ -141,7 +182,7 @@ fun ThemeItem(
                         .background(themeColor)
                 )
                 Text(
-                    text = theme.displayName,
+                    text = stringResource(theme.displayNameRes),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -149,7 +190,47 @@ fun ThemeItem(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Seleccionado",
+                    contentDescription = stringResource(com.movieroulette.app.R.string.selected),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LanguageItem(
+    language: AppLanguage,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        color = if (isSelected) {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = language.getDisplayName(context),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(com.movieroulette.app.R.string.selected),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

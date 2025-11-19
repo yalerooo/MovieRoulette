@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
     id("com.google.devtools.ksp") version "2.0.21-1.0.28"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -26,6 +27,8 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"${project.findProperty("SUPABASE_URL") ?: ""}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${project.findProperty("SUPABASE_ANON_KEY") ?: ""}\"")
         buildConfigField("String", "TMDB_API_KEY", "\"${project.findProperty("TMDB_API_KEY") ?: ""}\"")
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${project.findProperty("GOOGLE_CLIENT_ID") ?: ""}\"")
+        buildConfigField("String", "KNOCK_PUBLIC_KEY", "\"${project.findProperty("KNOCK_PUBLIC_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -82,16 +85,21 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    
+    // Custom Tabs for OAuth
+    implementation("androidx.browser:browser:1.8.0")
 
     // Supabase - Compatible con Kotlin 2.0.21
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.2")
     implementation("io.github.jan-tennert.supabase:auth-kt:3.0.2")
+    implementation("io.github.jan-tennert.supabase:functions-kt:3.0.2")
     implementation("io.github.jan-tennert.supabase:realtime-kt:3.0.2")
     implementation("io.github.jan-tennert.supabase:storage-kt:3.0.2")
 
     // Ktor (required by Supabase) - Compatible con Supabase 3.0.2
     implementation("io.ktor:ktor-client-android:3.0.1")
     implementation("io.ktor:ktor-client-core:3.0.1")
+    implementation("io.ktor:ktor-client-okhttp:3.0.1")
     implementation("io.ktor:ktor-utils:3.0.1")
     implementation("io.ktor:ktor-client-logging:3.0.1")
 
@@ -120,6 +128,14 @@ dependencies {
 
     // Lottie for animations
     implementation("com.airbnb.android:lottie-compose:6.3.0")
+    
+    // Firebase - explicit versions to avoid BoM resolution issues in Kotlin DSL
+    implementation("com.google.firebase:firebase-messaging-ktx:24.1.0")
+    implementation("com.google.firebase:firebase-analytics-ktx:22.1.2")
+    
+    // Knock SDK for push notifications
+    // Note: SDK not available, using REST API instead
+    // implementation("app.knock.android:knock:0.3.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

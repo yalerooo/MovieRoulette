@@ -31,7 +31,9 @@ data class TMDBMovie(
     val voteCount: Int,
     val popularity: Double,
     @SerializedName("genre_ids")
-    val genreIds: List<Int>
+    val genreIds: List<Int>,
+    @SerializedName("original_language")
+    val originalLanguage: String?
 )
 
 data class TMDBMovieDetails(
@@ -62,6 +64,31 @@ data class TMDBMovieDetails(
 data class TMDBGenre(
     val id: Int,
     val name: String
+)
+
+// Credits models
+data class TMDBCreditsResponse(
+    val id: Int,
+    val cast: List<TMDBCast>,
+    val crew: List<TMDBCrew>
+)
+
+data class TMDBCast(
+    val id: Int,
+    val name: String,
+    val character: String,
+    @SerializedName("profile_path")
+    val profilePath: String?,
+    val order: Int
+)
+
+data class TMDBCrew(
+    val id: Int,
+    val name: String,
+    val job: String,
+    val department: String,
+    @SerializedName("profile_path")
+    val profilePath: String?
 )
 
 // Helper functions
@@ -96,4 +123,25 @@ fun MovieWithDetails.toPosterUrl(): String? {
 
 fun MovieWithDetails.toBackdropUrl(): String? {
     return backdropPath?.let { "https://image.tmdb.org/t/p/original$it" }
+}
+
+// Extract genre IDs from genres JSON string
+fun MovieWithDetails.getGenreIds(): List<Int> {
+    return try {
+        if (genres.isNullOrBlank()) return emptyList()
+        val genreList = kotlinx.serialization.json.Json.decodeFromString<List<TMDBGenre>>(genres)
+        genreList.map { it.id }
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
+
+fun Movie.getGenreIds(): List<Int> {
+    return try {
+        if (genres.isNullOrBlank()) return emptyList()
+        val genreList = kotlinx.serialization.json.Json.decodeFromString<List<TMDBGenre>>(genres)
+        genreList.map { it.id }
+    } catch (e: Exception) {
+        emptyList()
+    }
 }

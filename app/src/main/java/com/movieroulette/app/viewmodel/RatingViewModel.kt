@@ -24,7 +24,7 @@ class RatingViewModel : ViewModel() {
             _ratingsState.value = if (result.isSuccess) {
                 RatingsState.Success(result.getOrNull() ?: emptyList())
             } else {
-                RatingsState.Error(result.exceptionOrNull()?.message ?: "Error al cargar puntuaciones")
+                RatingsState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_load_ratings)
             }
         }
     }
@@ -33,6 +33,6 @@ class RatingViewModel : ViewModel() {
         object Idle : RatingsState()
         object Loading : RatingsState()
         data class Success(val ratings: List<MovieRating>) : RatingsState()
-        data class Error(val message: String) : RatingsState()
+        data class Error(val message: String?, val messageResId: Int) : RatingsState()
     }
 }

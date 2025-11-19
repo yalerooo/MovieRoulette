@@ -170,12 +170,32 @@ private fun getColorSchemeForTheme(theme: AppTheme) = when (theme) {
         outlineVariant = SystemGray5,
         scrim = Color(0x80000000)
     )
-    AppTheme.DEFAULT -> DarkColorScheme
+    AppTheme.BLUE -> darkColorScheme(
+        primary = Color(0xFFADD8E6),
+        onPrimary = Color(0xFF000000),
+        primaryContainer = Color(0xFF87CEEB),
+        onPrimaryContainer = Color(0xFF000000),
+        secondary = Color(0xFFB0E0E6),
+        onSecondary = Color(0xFF000000),
+        tertiary = Color(0xFFAFEEEE),
+        onTertiary = Color(0xFF000000),
+        background = DarkBackground,
+        onBackground = DarkOnBackground,
+        surface = DarkSurface,
+        onSurface = DarkOnSurface,
+        surfaceVariant = DarkSurfaceVariant,
+        onSurfaceVariant = TextSecondary,
+        error = AccentRed,
+        onError = TextPrimary,
+        outline = SystemGray3,
+        outlineVariant = SystemGray5,
+        scrim = Color(0x80000000)
+    )
 }
 
 @Composable
 fun MovieRouletteTheme(
-    appTheme: AppTheme = AppTheme.DEFAULT,
+    appTheme: AppTheme = AppTheme.BLUE,
     darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -185,8 +205,8 @@ fun MovieRouletteTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
+            window.statusBarColor = colorScheme.surface.toArgb()
+            window.navigationBarColor = colorScheme.surface.toArgb()
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = false
                 isAppearanceLightNavigationBars = false

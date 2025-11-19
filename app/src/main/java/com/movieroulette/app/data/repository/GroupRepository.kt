@@ -222,6 +222,41 @@ class GroupRepository {
         }
     }
     
+    suspend fun updateMemberRole(groupId: String, userId: String, newRole: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val params = buildJsonObject {
+                    put("p_group_id", groupId)
+                    put("p_user_id", userId)
+                    put("p_new_role", newRole)
+                }
+
+                supabase.postgrest.rpc("update_member_role", params)
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    
+    suspend fun deleteGroup(groupId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Eliminar el grupo (CASCADE eliminará automáticamente movies, movie_status, etc.)
+                supabase.from("groups")
+                    .delete {
+                        filter {
+                            eq("id", groupId)
+                        }
+                    }
+                
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    
     private fun generateInviteCode(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return (1..8)

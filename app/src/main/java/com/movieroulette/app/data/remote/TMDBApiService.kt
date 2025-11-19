@@ -11,6 +11,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import com.movieroulette.app.data.model.TMDBSearchResponse
 import com.movieroulette.app.data.model.TMDBMovieDetails
+import com.movieroulette.app.data.model.TMDBCreditsResponse
+import com.movieroulette.app.data.model.TMDBGenresResponse
 import java.util.concurrent.TimeUnit
 
 interface TMDBApiService {
@@ -29,6 +31,12 @@ interface TMDBApiService {
         @Query("language") language: String = "es-ES"
     ): TMDBMovieDetails
     
+    @GET("movie/{movie_id}/credits")
+    suspend fun getMovieCredits(
+        @Path("movie_id") movieId: Int,
+        @Query("language") language: String = "es-ES"
+    ): TMDBCreditsResponse
+    
     @GET("movie/popular")
     suspend fun getPopularMovies(
         @Query("language") language: String = "es-ES",
@@ -40,6 +48,23 @@ interface TMDBApiService {
         @Query("language") language: String = "es-ES",
         @Query("page") page: Int = 1
     ): TMDBSearchResponse
+    
+    @GET("discover/movie")
+    suspend fun discoverMovies(
+        @Query("language") language: String = "es-ES",
+        @Query("page") page: Int = 1,
+        @Query("sort_by") sortBy: String = "popularity.desc",
+        @Query("with_genres") withGenres: String? = null,
+        @Query("primary_release_year") year: Int? = null,
+        @Query("vote_average.gte") minRating: Double? = null,
+        @Query("vote_count.gte") minVoteCount: Int? = null,
+        @Query("include_adult") includeAdult: Boolean = false
+    ): TMDBSearchResponse
+    
+    @GET("genre/movie/list")
+    suspend fun getGenres(
+        @Query("language") language: String = "es-ES"
+    ): TMDBGenresResponse
 }
 
 object TMDBClient {

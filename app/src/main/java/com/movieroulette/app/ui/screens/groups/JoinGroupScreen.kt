@@ -8,11 +8,13 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.movieroulette.app.R
 import com.movieroulette.app.ui.components.*
 import com.movieroulette.app.viewmodel.GroupViewModel
 
@@ -26,6 +28,7 @@ fun JoinGroupScreen(
     var inviteCodeError by remember { mutableStateOf<String?>(null) }
     
     val joinGroupState by viewModel.joinGroupState.collectAsState()
+    val codeRequiredMessage = stringResource(R.string.code_required)
     
     LaunchedEffect(joinGroupState) {
         if (joinGroupState is GroupViewModel.JoinGroupState.Success) {
@@ -36,10 +39,10 @@ fun JoinGroupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Unirse a Grupo") },
+                title = { Text(stringResource(R.string.join_group_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -57,13 +60,13 @@ fun JoinGroupScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
-                text = "Únete con código",
+                text = stringResource(R.string.join_with_code_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
             
             Text(
-                text = "Ingresa el código de invitación que te compartieron",
+                text = stringResource(R.string.invite_code_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -74,15 +77,15 @@ fun JoinGroupScreen(
                     inviteCode = it.filterNot(Char::isWhitespace).uppercase()
                     inviteCodeError = null
                 },
-                label = "Código de invitación",
-                placeholder = "ABCD1234",
+                label = stringResource(R.string.invitation_code),
+                placeholder = stringResource(R.string.invitation_code_placeholder),
                 error = inviteCodeError,
                 modifier = Modifier.fillMaxWidth()
             )
             
             if (joinGroupState is GroupViewModel.JoinGroupState.Error) {
                 Text(
-                    text = (joinGroupState as GroupViewModel.JoinGroupState.Error).message,
+                    text = (joinGroupState as GroupViewModel.JoinGroupState.Error).message ?: "",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -91,11 +94,11 @@ fun JoinGroupScreen(
             Spacer(modifier = Modifier.weight(1f))
             
             PrimaryButton(
-                text = "Unirse al Grupo",
+                text = stringResource(R.string.join_group_button),
                 onClick = {
                     val sanitizedCode = inviteCode.trim()
                     if (sanitizedCode.isBlank()) {
-                        inviteCodeError = "El código es requerido"
+                        inviteCodeError = codeRequiredMessage
                     } else {
                         viewModel.joinGroup(sanitizedCode)
                     }

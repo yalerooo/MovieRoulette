@@ -6,7 +6,9 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.movieroulette.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -15,12 +17,13 @@ fun MovieDetailScreen(
     movieId: String
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
-                title = { Text("Detalle") },
+                title = { Text(stringResource(R.string.detail)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )

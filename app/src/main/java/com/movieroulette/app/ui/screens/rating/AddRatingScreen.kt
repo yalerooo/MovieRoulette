@@ -3,12 +3,14 @@ package com.movieroulette.app.ui.screens.rating
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,10 +29,10 @@ fun AddRatingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Valorar Película") },
+                title = { Text(stringResource(com.movieroulette.app.R.string.rate_movie)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(com.movieroulette.app.R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -47,13 +49,15 @@ fun AddRatingScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Text(
-                text = "🎬",
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp)
+            Icon(
+                imageVector = Icons.Filled.Movie,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
             
             Text(
-                text = "¿Qué te pareció?",
+                text = stringResource(com.movieroulette.app.R.string.what_did_you_think),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -80,7 +84,7 @@ fun AddRatingScreen(
             }
             
             Text(
-                text = if (rating > 0) "$rating/10" else "Selecciona una puntuación",
+                text = if (rating > 0) stringResource(com.movieroulette.app.R.string.rating_out_of_ten, rating) else stringResource(com.movieroulette.app.R.string.select_score),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -88,15 +92,15 @@ fun AddRatingScreen(
             AppTextField(
                 value = comment,
                 onValueChange = { comment = it },
-                label = "Comentario (opcional)",
-                placeholder = "¿Qué te gustó o no te gustó?",
+                label = stringResource(com.movieroulette.app.R.string.comment_optional),
+                placeholder = stringResource(com.movieroulette.app.R.string.comment_optional_placeholder),
                 modifier = Modifier.fillMaxWidth()
             )
             
             Spacer(modifier = Modifier.weight(1f))
             
             PrimaryButton(
-                text = "Guardar Valoración",
+                text = stringResource(com.movieroulette.app.R.string.save_rating),
                 onClick = {
                     // Save rating logic here
                     navController.navigateUp()

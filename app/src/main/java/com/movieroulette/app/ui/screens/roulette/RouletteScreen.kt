@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.movieroulette.app.R
 import com.movieroulette.app.data.model.MovieWithDetails
 import com.movieroulette.app.data.model.toPosterUrl
 import com.movieroulette.app.ui.components.PrimaryButton
@@ -48,10 +51,10 @@ fun RouletteScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ruleta") },
+                title = { Text(stringResource(R.string.roulette)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -131,9 +134,11 @@ fun RouletteScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "🎬",
-                                    style = MaterialTheme.typography.displayLarge.copy(fontSize = 120.sp)
+                                Icon(
+                                    imageVector = Icons.Filled.Movie,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(120.dp),
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -157,7 +162,7 @@ fun RouletteScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "¡Película Seleccionada!",
+                            text = stringResource(R.string.movie_selected),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -173,7 +178,7 @@ fun RouletteScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 PrimaryButton(
-                    text = "Ver Ahora",
+                    text = stringResource(R.string.watch_now),
                     onClick = {
                         scope.launch {
                             selectedMovie?.let { movie ->
@@ -188,7 +193,7 @@ fun RouletteScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 SecondaryButton(
-                    text = "Girar de Nuevo",
+                    text = stringResource(R.string.spin_again),
                     onClick = {
                         selectedMovie = null
                     },
@@ -211,12 +216,12 @@ fun RouletteScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "No hay películas pendientes",
+                                text = stringResource(R.string.no_pending_movies),
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Agrega películas al grupo para usar la ruleta",
+                                text = stringResource(R.string.add_movies_to_use_roulette),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -224,7 +229,7 @@ fun RouletteScreen(
                     }
                 } else {
                     PrimaryButton(
-                        text = if (isSpinning) "Girando..." else "🎲 GIRAR RULETA",
+                        text = if (isSpinning) stringResource(R.string.spinning) else stringResource(R.string.spin_roulette),
                         onClick = {
                             if (!isSpinning && movies.isNotEmpty()) {
                                 isSpinning = true

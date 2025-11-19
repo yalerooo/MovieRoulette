@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.movieroulette.app.data.model.Group
 import com.movieroulette.app.data.model.GroupMemberWithProfile
 import com.movieroulette.app.data.model.UserProfile
+import com.movieroulette.app.data.repository.AuthRepository
 import com.movieroulette.app.data.repository.GroupRepository
 import com.movieroulette.app.data.repository.StorageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ class GroupViewModel : ViewModel() {
     
     val groupRepository = GroupRepository()
     private val storageRepository = StorageRepository()
+    val authRepository = AuthRepository()
     
     private val _uiState = MutableStateFlow<GroupUiState>(GroupUiState.Loading)
     val uiState: StateFlow<GroupUiState> = _uiState.asStateFlow()
@@ -35,15 +37,41 @@ class GroupViewModel : ViewModel() {
     private val _userProfileState = MutableStateFlow<UserProfileState>(UserProfileState.Loading)
     val userProfileState: StateFlow<UserProfileState> = _userProfileState.asStateFlow()
     
+    private val _membersState = MutableStateFlow<MembersState>(MembersState.Loading)
+    val membersState: StateFlow<MembersState> = _membersState.asStateFlow()
+    
+    // Caché de nombres de grupos para evitar parpadeos
+    private val groupNamesCache = mutableMapOf<String, String>()
+    
+    fun getGroupName(groupId: String): String {
+        // Primero intentar del caché
+        groupNamesCache[groupId]?.let { return it }
+        
+        // Luego buscar en el estado actual
+        val groups = (groupsState.value as? GroupsState.Success)?.groups
+        val group = groups?.find { it.id == groupId }
+        if (group != null) {
+            groupNamesCache[groupId] = group.name
+            return group.name
+        }
+        
+        return ""
+    }
+    
     fun loadUserGroups() {
         viewModelScope.launch {
             _groupsState.value = GroupsState.Loading
             
             val result = groupRepository.getUserGroups()
             _groupsState.value = if (result.isSuccess) {
-                GroupsState.Success(result.getOrNull() ?: emptyList())
+                val groups = result.getOrNull() ?: emptyList()
+                // Actualizar caché con todos los nombres
+                groups.forEach { group ->
+                    groupNamesCache[group.id] = group.name
+                }
+                GroupsState.Success(groups)
             } else {
-                GroupsState.Error(result.exceptionOrNull()?.message ?: "Error al cargar grupos")
+                GroupsState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_load_groups)
             }
         }
     }
@@ -56,7 +84,7 @@ class GroupViewModel : ViewModel() {
             _userProfileState.value = if (result.isSuccess) {
                 UserProfileState.Success(result.getOrNull()!!)
             } else {
-                UserProfileState.Error(result.exceptionOrNull()?.message ?: "Error al cargar perfil")
+                UserProfileState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_load_profile)
             }
         }
     }
@@ -87,7 +115,7 @@ class GroupViewModel : ViewModel() {
             // Upload to storage
             val uploadResult = storageRepository.uploadProfilePicture(imageData)
             if (uploadResult.isFailure) {
-                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Error al subir imagen"))
+                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Error uploading profile picture"))
             }
 
             val imageUrl = uploadResult.getOrNull()!!
@@ -95,12 +123,25 @@ class GroupViewModel : ViewModel() {
             // Update user profile
             val updateResult = groupRepository.updateUserAvatar(imageUrl)
             if (updateResult.isFailure) {
-                return Result.failure(updateResult.exceptionOrNull() ?: Exception("Error al actualizar perfil"))
+                return Result.failure(updateResult.exceptionOrNull() ?: Exception("Error updating profile"))
             }
 
             // Reload profile
             loadUserProfile()
             Result.success(imageUrl)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun updateUserUsername(newUsername: String): Result<Unit> {
+        return try {
+            val result = authRepository.updateUsername(newUsername)
+            if (result.isSuccess) {
+                // Reload profile after updating username
+                loadUserProfile()
+            }
+            result
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -114,7 +155,7 @@ class GroupViewModel : ViewModel() {
             // Upload to storage
             val uploadResult = storageRepository.uploadGroupPicture(imageData)
             if (uploadResult.isFailure) {
-                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Error al subir imagen"))
+                return Result.failure(uploadResult.exceptionOrNull() ?: Exception("Error uploading group picture"))
             }
 
             val imageUrl = uploadResult.getOrNull()!!
@@ -122,7 +163,7 @@ class GroupViewModel : ViewModel() {
             // Update group
             val updateResult = groupRepository.updateGroupImage(groupId, imageUrl)
             if (updateResult.isFailure) {
-                return Result.failure(updateResult.exceptionOrNull() ?: Exception("Error al actualizar grupo"))
+                return Result.failure(updateResult.exceptionOrNull() ?: Exception("Error updating group"))
             }
 
             // Reload groups
@@ -146,7 +187,7 @@ class GroupViewModel : ViewModel() {
                     GroupUiState.Success(groups)
                 }
             } else {
-                GroupUiState.Error(result.exceptionOrNull()?.message ?: "Error al cargar grupos")
+                GroupUiState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_load_groups)
             }
         }
     }
@@ -159,7 +200,7 @@ class GroupViewModel : ViewModel() {
             _createGroupState.value = if (result.isSuccess) {
                 CreateGroupState.Success(result.getOrNull()!!)
             } else {
-                CreateGroupState.Error(result.exceptionOrNull()?.message ?: "Error al crear grupo")
+                CreateGroupState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_create_group)
             }
         }
     }
@@ -172,7 +213,7 @@ class GroupViewModel : ViewModel() {
             _joinGroupState.value = if (result.isSuccess) {
                 JoinGroupState.Success(result.getOrNull()!!)
             } else {
-                JoinGroupState.Error(result.exceptionOrNull()?.message ?: "Error al unirse al grupo")
+                JoinGroupState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_join_group)
             }
         }
     }
@@ -187,7 +228,7 @@ class GroupViewModel : ViewModel() {
                 loadGroups()
                 LeaveGroupState.Success
             } else {
-                LeaveGroupState.Error(result.exceptionOrNull()?.message ?: "Error al salir del grupo")
+                LeaveGroupState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_leave_group)
             }
         }
     }
@@ -208,40 +249,68 @@ class GroupViewModel : ViewModel() {
         object Loading : GroupUiState()
         object Empty : GroupUiState()
         data class Success(val groups: List<Group>) : GroupUiState()
-        data class Error(val message: String) : GroupUiState()
+        data class Error(val message: String?, val messageResId: Int) : GroupUiState()
     }
     
     sealed class CreateGroupState {
         object Idle : CreateGroupState()
         object Loading : CreateGroupState()
         data class Success(val group: Group) : CreateGroupState()
-        data class Error(val message: String) : CreateGroupState()
+        data class Error(val message: String?, val messageResId: Int) : CreateGroupState()
     }
     
     sealed class JoinGroupState {
         object Idle : JoinGroupState()
         object Loading : JoinGroupState()
         data class Success(val group: Group) : JoinGroupState()
-        data class Error(val message: String) : JoinGroupState()
+        data class Error(val message: String?, val messageResId: Int) : JoinGroupState()
     }
 
     sealed class LeaveGroupState {
         object Idle : LeaveGroupState()
         object Loading : LeaveGroupState()
         object Success : LeaveGroupState()
-        data class Error(val message: String) : LeaveGroupState()
+        data class Error(val message: String?, val messageResId: Int) : LeaveGroupState()
+    }
+    
+    fun deleteGroup(groupId: String) {
+        viewModelScope.launch {
+            val result = groupRepository.deleteGroup(groupId)
+            if (result.isSuccess) {
+                loadUserGroups()
+            }
+        }
+    }
+    
+    fun loadMembers(groupId: String) {
+        viewModelScope.launch {
+            _membersState.value = MembersState.Loading
+            
+            val result = groupRepository.getGroupMembers(groupId)
+            _membersState.value = if (result.isSuccess) {
+                MembersState.Success(result.getOrNull() ?: emptyList())
+            } else {
+                MembersState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_load_members)
+            }
+        }
     }
     
     sealed class GroupsState {
         object Loading : GroupsState()
         data class Success(val groups: List<Group>) : GroupsState()
-        data class Error(val message: String) : GroupsState()
+        data class Error(val message: String?, val messageResId: Int) : GroupsState()
     }
     
     sealed class UserProfileState {
         object Loading : UserProfileState()
         data class Success(val profile: UserProfile) : UserProfileState()
-        data class Error(val message: String) : UserProfileState()
+        data class Error(val message: String?, val messageResId: Int) : UserProfileState()
+    }
+    
+    sealed class MembersState {
+        object Loading : MembersState()
+        data class Success(val members: List<GroupMemberWithProfile>) : MembersState()
+        data class Error(val message: String?, val messageResId: Int) : MembersState()
     }
 }
 
@@ -260,7 +329,7 @@ class GroupDetailViewModel : ViewModel() {
             _membersState.value = if (result.isSuccess) {
                 MembersState.Success(result.getOrNull() ?: emptyList())
             } else {
-                MembersState.Error(result.exceptionOrNull()?.message ?: "Error al cargar miembros")
+                MembersState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_load_members)
             }
         }
     }
@@ -271,7 +340,18 @@ class GroupDetailViewModel : ViewModel() {
             if (result.isSuccess) {
                 loadMembers(groupId)
             } else {
-                _membersState.value = MembersState.Error(result.exceptionOrNull()?.message ?: "Error al eliminar miembro")
+                _membersState.value = MembersState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_remove_member)
+            }
+        }
+    }
+    
+    fun updateMemberRole(groupId: String, userId: String, newRole: String) {
+        viewModelScope.launch {
+            val result = groupRepository.updateMemberRole(groupId, userId, newRole)
+            if (result.isSuccess) {
+                loadMembers(groupId)
+            } else {
+                _membersState.value = MembersState.Error(result.exceptionOrNull()?.message, com.movieroulette.app.R.string.error_update_role)
             }
         }
     }
@@ -279,6 +359,6 @@ class GroupDetailViewModel : ViewModel() {
     sealed class MembersState {
         object Loading : MembersState()
         data class Success(val members: List<GroupMemberWithProfile>) : MembersState()
-        data class Error(val message: String) : MembersState()
+        data class Error(val message: String?, val messageResId: Int) : MembersState()
     }
 }

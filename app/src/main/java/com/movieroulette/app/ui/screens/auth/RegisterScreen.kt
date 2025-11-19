@@ -12,6 +12,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +30,7 @@ fun RegisterScreen(
     navController: NavController,
     viewModel: AuthViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -58,13 +61,13 @@ fun RegisterScreen(
                     popUpTo(Screen.Register.route) { inclusive = true }
                 }
             },
-            title = { Text("¡Cuenta creada!") },
+            title = { Text(stringResource(com.movieroulette.app.R.string.account_created)) },
             text = { 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Tu cuenta ha sido creada exitosamente.")
-                    Text("Hemos enviado un enlace de verificación a tu correo electrónico.")
+                    Text(stringResource(com.movieroulette.app.R.string.account_created_message))
+                    Text(stringResource(com.movieroulette.app.R.string.verification_sent))
                     Text(
-                        "Por favor, revisa tu bandeja de entrada (y la carpeta de spam) para activar tu cuenta antes de iniciar sesión.",
+                        stringResource(com.movieroulette.app.R.string.check_inbox),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -79,7 +82,7 @@ fun RegisterScreen(
                         }
                     }
                 ) {
-                    Text("Ir al inicio de sesión")
+                    Text(stringResource(com.movieroulette.app.R.string.go_to_login))
                 }
             }
         )
@@ -88,10 +91,10 @@ fun RegisterScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Crear Cuenta") },
+                title = { Text(stringResource(com.movieroulette.app.R.string.create_account)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(com.movieroulette.app.R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -110,7 +113,7 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "¡Únete a la aventura!",
+                text = stringResource(com.movieroulette.app.R.string.join_adventure),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 32.dp)
@@ -123,8 +126,8 @@ fun RegisterScreen(
                     username = it
                     usernameError = null
                 },
-                label = "Nombre de usuario",
-                placeholder = "tunombre",
+                label = stringResource(com.movieroulette.app.R.string.username),
+                placeholder = stringResource(com.movieroulette.app.R.string.username_placeholder),
                 error = usernameError,
                 leadingIcon = {
                     Icon(Icons.Default.Person, contentDescription = null)
@@ -141,12 +144,13 @@ fun RegisterScreen(
                     email = it
                     emailError = null
                 },
-                label = "Email",
-                placeholder = "tu@email.com",
+                label = stringResource(com.movieroulette.app.R.string.email),
+                placeholder = stringResource(com.movieroulette.app.R.string.email_placeholder),
                 error = emailError,
                 leadingIcon = {
                     Icon(Icons.Default.Email, contentDescription = null)
                 },
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -159,13 +163,14 @@ fun RegisterScreen(
                     password = it
                     passwordError = null
                 },
-                label = "Contraseña",
-                placeholder = "••••••••",
+                label = stringResource(com.movieroulette.app.R.string.password),
+                placeholder = stringResource(com.movieroulette.app.R.string.password_placeholder),
                 isPassword = true,
                 error = passwordError,
                 leadingIcon = {
                     Icon(Icons.Default.Lock, contentDescription = null)
                 },
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
                 modifier = Modifier.fillMaxWidth()
             )
             
@@ -178,20 +183,21 @@ fun RegisterScreen(
                     confirmPassword = it
                     confirmPasswordError = null
                 },
-                label = "Confirmar Contraseña",
-                placeholder = "••••••••",
+                label = stringResource(com.movieroulette.app.R.string.confirm_password),
+                placeholder = stringResource(com.movieroulette.app.R.string.password_placeholder),
                 isPassword = true,
                 error = confirmPasswordError,
                 leadingIcon = {
                     Icon(Icons.Default.Lock, contentDescription = null)
                 },
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
                 modifier = Modifier.fillMaxWidth()
             )
             
             // Show error if any
             if (uiState is AuthViewModel.AuthUiState.Error) {
                 Text(
-                    text = (uiState as AuthViewModel.AuthUiState.Error).message,
+                    text = (uiState as AuthViewModel.AuthUiState.Error).message ?: "",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 8.dp)
@@ -202,28 +208,28 @@ fun RegisterScreen(
             
             // Register button
             PrimaryButton(
-                text = "Crear Cuenta",
+                text = stringResource(com.movieroulette.app.R.string.create_account),
                 onClick = {
                     // Validate
                     var hasError = false
                     
                     if (username.isBlank() || username.length < 3) {
-                        usernameError = "El nombre debe tener al menos 3 caracteres"
+                        usernameError = context.getString(com.movieroulette.app.R.string.username_error)
                         hasError = true
                     }
                     
                     if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        emailError = "Email inválido"
+                        emailError = context.getString(com.movieroulette.app.R.string.email_invalid)
                         hasError = true
                     }
                     
                     if (password.isBlank() || password.length < 6) {
-                        passwordError = "La contraseña debe tener al menos 6 caracteres"
+                        passwordError = context.getString(com.movieroulette.app.R.string.password_short)
                         hasError = true
                     }
                     
                     if (password != confirmPassword) {
-                        confirmPasswordError = "Las contraseñas no coinciden"
+                        confirmPasswordError = context.getString(com.movieroulette.app.R.string.passwords_dont_match)
                         hasError = true
                     }
                     

@@ -1,0 +1,307 @@
+<resources>
+    <string name="app_name">Filmlette</string>
+    
+    <!-- Settings -->
+    <string name="settings">Ajustes</string>
+    <string name="back">Volver</string>
+    <string name="appearance">Apariencia</string>
+    <string name="color_theme">Tema de color</string>
+    <string name="language">Idioma</string>
+    <string name="selected">Seleccionado</string>
+    
+    <!-- Theme colors -->
+    <string name="theme_blue">Azul</string>
+    <string name="theme_red">Rojo</string>
+    <string name="theme_pink">Rosa</string>
+    <string name="theme_orange">Naranja</string>
+    <string name="theme_green">Verde</string>
+    <string name="theme_purple">Morado</string>
+    
+    <!-- Login -->
+    <string name="login">Iniciar sesión</string>
+    <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="remember_me">Recordarme</string>
+    <string name="no_account">¿No tienes cuenta?</string>
+    <string name="register_here">Regístrate aquí</string>
+    <string name="tagline">Elige tu próxima película</string>
+    <string name="email_required">El email es requerido</string>
+    <string name="password_required">La contraseña es requerida</string>
+    <string name="sign_in">Iniciar Sesión</string>
+    <string name="create_account">Crear Cuenta</string>
+    <string name="email_placeholder">tu@email.com</string>
+    <string name="password_placeholder">••••••••</string>
+    
+    <!-- Register -->
+    <string name="register">Registrarse</string>
+    <string name="name">Nombre</string>
+    <string name="username">Nombre de usuario</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="already_have_account">¿Ya tienes cuenta?</string>
+    <string name="login_here">Inicia sesión aquí</string>
+    <string name="join_adventure">¡Únete a la aventura!</string>
+    <string name="account_created">¡Cuenta creada!</string>
+    <string name="account_created_message">Tu cuenta ha sido creada exitosamente.</string>
+    <string name="verification_sent">Hemos enviado un enlace de verificación a tu correo electrónico.</string>
+    <string name="check_inbox">Por favor, revisa tu bandeja de entrada (y la carpeta de spam) para activar tu cuenta antes de iniciar sesión.</string>
+    <string name="go_to_login">Ir al inicio de sesión</string>
+    <string name="username_error">El nombre debe tener al menos 3 caracteres</string>
+    <string name="username_taken">Este nombre de usuario ya está en uso</string>
+    <string name="email_invalid">Email inválido</string>
+    <string name="password_short">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="username_placeholder">tunombre</string>
+    
+    <!-- Username Setup -->
+    <string name="setup_username">Configura tu nombre de usuario</string>
+    <string name="choose_username_title">Elige tu nombre de usuario</string>
+    <string name="choose_username_description">Así es como te verán otros usuarios en los grupos</string>
+    <string name="continue_button">Continuar</string>
+    <string name="error_update_username">Error al actualizar nombre de usuario</string>
+    <string name="profile_photo_optional">Foto de perfil (opcional)</string>
+    <string name="add_photo">Añadir foto</string>
+    <string name="change_photo">Cambiar foto</string>
+    
+    <!-- Tabs -->
+    <string name="choose">Elegir</string>
+    <string name="pending">Pendientes</string>
+    <string name="watching">Viendo</string>
+    <string name="watched">Vistas</string>
+    
+    <!-- Buttons -->
+    <string name="choose_movie">Elegir película</string>
+    <string name="add_movie">Añadir película</string>
+    <string name="create_group">Crear grupo</string>
+    <string name="join_group">Unirse a grupo</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="invite_members">Invitar miembros</string>
+    <string name="manage_members">Gestionar miembros</string>
+    <string name="send_invitation">Enviar invitación</string>
+    <string name="copy_code">Copiar código</string>
+    <string name="share">Compartir</string>
+    <string name="search">Buscar</string>
+    <string name="filter">Filtrar</string>
+    <string name="mark_as_watching">Marcar como viendo</string>
+    <string name="mark_as_watched">Marcar como vista</string>
+    
+    <!-- Movie details -->
+    <string name="overview">Sinopsis</string>
+    <string name="release_date">Fecha de estreno</string>
+    <string name="duration">Duración</string>
+    <string name="rating">Valoración</string>
+    <string name="genres">Géneros</string>
+    <string name="minutes">min</string>
+    
+    <!-- Actions -->
+    <string name="delete">Eliminar</string>
+    <string name="edit">Editar</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="accept">Aceptar</string>
+    <string name="close">Cerrar</string>
+    <string name="remove">Quitar</string>
+    <string name="leave_group">Salir del grupo</string>
+    <string name="you">Tú</string>
+    <string name="role">Rol</string>
+    <string name="make_admin">Hacer administrador</string>
+    <string name="remove_admin">Quitar administrador</string>
+    <string name="make_admin_confirm">¿Hacer administrador a %1$s?</string>
+    <string name="remove_admin_confirm">¿Quitar rol de administrador a %1$s?</string>
+    <string name="remove_from_group">Eliminar del grupo</string>
+    
+    <!-- Messages -->
+    <string name="loading">Cargando…</string>
+    <string name="no_movies">No hay películas</string>
+    <string name="no_groups">No hay grupos</string>
+    <string name="error">Error</string>
+    <string name="success">Éxito</string>
+    <string name="copied">Copiado al portapapeles</string>
+    <string name="movie_added">Película añadida</string>
+    <string name="movie_deleted">Película eliminada</string>
+    <string name="group_created">Grupo creado</string>
+    <string name="joined_group">Te has unido al grupo</string>
+    <string name="invitation_sent">Invitación enviada</string>
+    <string name="member_removed">Miembro eliminado</string>
+    <string name="left_group">Has salido del grupo</string>
+    <string name="login_error">Error al iniciar sesión</string>
+    <string name="register_error">Error al registrarse</string>
+    <string name="passwords_dont_match">Las contraseñas no coinciden</string>
+    
+    <!-- Genre filter -->
+    <string name="select_genre">Seleccionar género</string>
+    <string name="all_genres">Todos los géneros</string>
+    
+    <!-- Groups -->
+    <string name="my_groups">Mis grupos</string>
+    <string name="group_name">Nombre del grupo</string>
+    <string name="group_code">Código del grupo</string>
+    <string name="enter_code">Introduce el código</string>
+    <string name="members">Miembros</string>
+    <string name="admin">Administrador</string>
+    <string name="member">Miembro</string>
+    
+    <!-- Movie search -->
+    <string name="search_movies">Buscar películas</string>
+    <string name="search_tmdb">Buscar en TMDB</string>
+    <string name="no_results">No se encontraron resultados</string>
+    <string name="search_movie">Buscar Película</string>
+    <string name="search_movie_placeholder">Buscar película…</string>
+    <string name="no_results_title">No hay resultados</string>
+    <string name="try_another_title">Intenta con otro título</string>
+    
+    <!-- Dialogs -->
+    <string name="confirm_delete">Confirmar eliminación</string>
+    <string name="confirm_delete_movie">¿Estás seguro de que quieres eliminar esta película?</string>
+    <string name="confirm_leave_group">¿Estás seguro de que quieres salir de este grupo?</string>
+    <string name="confirm_remove_member">¿Estás seguro de que quieres eliminar este miembro?</string>
+    
+    <!-- Navigation -->
+    <string name="home">Inicio</string>
+    <string name="profile">Perfil</string>
+    <string name="edit_profile">Editar Perfil</string>
+    <string name="avatar">Avatar</string>
+    <string name="menu">Menú</string>
+    <string name="detail">Detalle</string>
+    <string name="no_groups_message">Crea un grupo nuevo o únete a uno existente con un código de invitación</string>
+    <string name="join_with_code">Unirse con código</string>
+    <string name="leave_group_title">Salir de %1$s</string>
+    <string name="leave_group_confirm">¿Seguro que quieres salir de este grupo?</string>
+    <string name="leave">Salir</string>
+    <string name="hold_to_leave">Mantén pulsado para salir</string>
+    
+    <!-- Create Group -->
+    <string name="create_new_group">Crea un grupo nuevo</string>
+    <string name="group_members_description">Los miembros del grupo podrán añadir películas y votar juntos</string>
+    <string name="group_name_placeholder">Ej: Familia, Amigos, Cine Club…</string>
+    <string name="group_name_required">El nombre es requerido</string>
+    
+    <!-- Join Group -->
+    <string name="join_group_title">Unirse a Grupo</string>
+    <string name="join_with_code_title">Únete con código</string>
+    <string name="invite_code_description">Ingresa el código de invitación que te compartieron</string>
+    <string name="invitation_code">Código de invitación</string>
+    <string name="invitation_code_placeholder">ABCD1234</string>
+    <string name="code_required">El código es requerido</string>
+    <string name="join_group_button">Unirse al Grupo</string>
+    
+    <!-- Group Members -->
+    <string name="group_members">Miembros del Grupo</string>
+    <string name="no_members">No hay miembros</string>
+    <string name="delete_member">Eliminar Miembro</string>
+    <string name="delete_member_confirm">¿Estás seguro de que quieres eliminar a %1$s del grupo?</string>
+    <string name="view_profile">Ver perfil</string>
+    <string name="administrator">Administrador</string>
+    
+    <!-- Edit Group -->
+    <string name="edit_group">Editar Grupo</string>
+    <string name="group_image">Imagen del Grupo</string>
+    <string name="group_image_description">Imagen del grupo</string>
+    <string name="select_image">Seleccionar Imagen</string>
+    <string name="error_compress_image">Error al comprimir imagen</string>
+    <string name="error_upload_image">Error al subir imagen</string>
+    
+    <!-- Group Detail Screen -->
+    <string name="group">Grupo</string>
+    <string name="invite">Invitar</string>
+    <string name="edit_group_title">Editar grupo</string>
+    <string name="invite_to_group">Invitar al Grupo</string>
+    <string name="share_code_message">Comparte este código para que otros se unan:</string>
+    <string name="copy">Copiar</string>
+    <string name="code_copied">Código copiado</string>
+    <string name="filter_by_genre">Filtrar por género</string>
+    <string name="select_genre_to_filter">Selecciona un género para filtrar las películas de la ruleta</string>
+    <string name="all_movies">Todas las películas</string>
+    <string name="no_movies_in_roulette">No hay películas en la ruleta</string>
+    <string name="remove_filter">Quitar filtro</string>
+    <string name="watch_now">Ver Ahora</string>
+    <string name="another">Otra</string>
+    <string name="view">Ver</string>
+    <string name="finish">Finalizar</string>
+    <string name="pause">Pausar</string>
+    <string name="rate">Puntuar</string>
+    <string name="delete_movie">Eliminar Película</string>
+    <string name="delete_movie_confirm_message">¿Estás seguro de que quieres eliminar \'%1$s\' del grupo?</string>
+    <string name="delete_group">Eliminar Grupo</string>
+    <string name="delete_group_title">¿Eliminar grupo?</string>
+    <string name="delete_group_message">Esta acción no se puede deshacer. Se eliminarán todas las películas, puntuaciones y datos del grupo.</string>
+    <string name="rate_now_title">¿Quieres puntuar ahora?</string>
+    <string name="rate_now_message">Has marcado \'%1$s\' como vista. ¿Quieres dar tu puntuación ahora o prefieres hacerlo después?</string>
+    <string name="rate_now">Puntuar ahora</string>
+    <string name="rate_later">Puntuar después</string>
+    <string name="added_by">Añadida por %1$s</string>
+    
+    <!-- Rate Movie Screen -->
+    <string name="rate_movie">¿Quieres puntuar esta película?</string>
+    <string name="your_rating">Tu puntuación</string>
+    <string name="comment_optional">Comentario (opcional)</string>
+    <string name="save_rating">Guardar Puntuación</string>
+    <string name="skip">Puntuar después</string>
+    
+    <!-- Movie Ratings Screen -->
+    <string name="movie_ratings">Puntuaciones</string>
+    <string name="user_default">Usuario</string>
+    <string name="no_ratings_yet">No hay puntuaciones aún</string>
+    <string name="ratings_count">%1$d puntuaciones</string>
+    <string name="delete_rating">Eliminar Puntuación</string>
+    <string name="delete_rating_confirm">¿Estás seguro de que quieres eliminar tu puntuación de esta película?</string>
+    
+    <!-- Edit Profile Screen -->
+    <string name="profile_photo">Foto de Perfil</string>
+    <string name="select_photo">Seleccionar Foto</string>
+    
+    <!-- Common Components -->
+    <string name="retry">Reintentar</string>
+    
+    <!-- Movies List Screen -->
+    <string name="in_roulette">En Ruleta</string>
+    <string name="movies">Películas</string>
+    <string name="add_movies_to_group">Añade películas al grupo</string>
+    <string name="view_ratings">Ver puntuaciones</string>
+    <string name="watched_checkmark">Finalizada</string>
+    <string name="back_to_roulette">Pendiente</string>
+    <string name="back_to_roulette_full">Pendiente</string>
+    
+    <!-- Roulette Screen -->
+    <string name="roulette">Ruleta</string>
+    <string name="movie_selected">¡Película Seleccionada!</string>
+    <string name="spin_again">Girar de Nuevo</string>
+    <string name="no_pending_movies">No hay películas pendientes</string>
+    <string name="add_movies_to_use_roulette">Agrega películas al grupo para usar la ruleta</string>
+    <string name="spinning">Girando…</string>
+    <string name="spin_roulette">🎲 GIRAR RULETA</string>
+    
+    <!-- Add Rating Screen -->
+    <string name="what_did_you_think">¿Qué te pareció?</string>
+    <string name="select_score">Selecciona una puntuación</string>
+    <string name="rating_out_of_ten">%1$d/10</string>
+    <string name="comment_optional_placeholder">¿Qué te gustó o no te gustó?</string>
+    <string name="all_ratings">Todas las Puntuaciones</string>
+    <string name="ratings_label">puntuaciones</string>
+    
+    <!-- Error messages -->
+    <string name="error_login">Error al iniciar sesión</string>
+    <string name="error_create_account">Error al crear cuenta</string>
+    <string name="error_load_groups">Error al cargar grupos</string>
+    <string name="error_load_profile">Error al cargar perfil</string>
+    <string name="error_create_group">Error al crear grupo</string>
+    <string name="error_join_group">Error al unirse al grupo</string>
+    <string name="error_leave_group">Error al salir del grupo</string>
+    <string name="error_load_members">Error al cargar miembros</string>
+    <string name="error_remove_member">Error al eliminar miembro</string>
+    <string name="error_update_role">Error al actualizar rol</string>
+    <string name="error_search_movies">Error al buscar películas</string>
+    <string name="error_load_movies">Error al cargar películas</string>
+    <string name="error_get_details">Error al obtener detalles</string>
+    <string name="error_movie_already_added">Esta película ya está en el grupo</string>
+    <string name="error_load_ratings">Error al cargar puntuaciones</string>
+    <string name="error_upload_profile_picture">Error al subir imagen de perfil</string>
+    <string name="error_update_profile">Error al actualizar perfil</string>
+    <string name="error_upload_group_picture">Error al subir imagen del grupo</string>
+    <string name="error_update_group">Error al actualizar grupo</string>
+    
+    <!-- Profile Screen -->
+    <string name="rated">Valoradas</string>
+    <string name="recent_movies">Últimas películas</string>
+    <string name="favorite_movies">Favoritas</string>
+    <string name="logout_confirmation">¿Estás seguro de que quieres cerrar sesión?</string>
+</resources>
+

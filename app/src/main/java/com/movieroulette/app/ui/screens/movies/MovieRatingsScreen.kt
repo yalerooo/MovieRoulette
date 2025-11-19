@@ -1,5 +1,6 @@
 package com.movieroulette.app.ui.screens.movies
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,9 +16,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.movieroulette.app.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -54,119 +60,156 @@ fun MovieRatingsScreen(
     val movie = (moviesState as? MovieViewModel.MoviesState.Success)?.movies?.find { it.id == movieId }
     
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
-                title = { Text("Puntuaciones") },
+                title = { Text(stringResource(R.string.movie_ratings)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
             movie?.let {
-                // Movie Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                Column(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    AsyncImage(
-                        model = it.toPosterUrl(),
-                        contentDescription = it.title,
+                    // Movie Card at the top
+                    Card(
                         modifier = Modifier
-                            .width(100.dp)
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            .fillMaxWidth()
+                            .height(280.dp)
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
-                        Text(
-                            text = it.title,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        
-                        it.averageRating?.let { avg ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Text(
-                                    text = String.format("%.1f/10", avg),
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            
-                            Text(
-                                text = "${it.totalRatings} puntuaciones",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            // Poster background
+                            AsyncImage(
+                                model = it.toPosterUrl(),
+                                contentDescription = it.title,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
                             )
+                            
+                            // Gradient overlay
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                Color.Black.copy(alpha = 0.3f),
+                                                Color.Black.copy(alpha = 0.7f),
+                                                Color.Black.copy(alpha = 0.95f)
+                                            ),
+                                            startY = 0f,
+                                            endY = 800f
+                                        )
+                                    )
+                            )
+                            
+                            // Movie info
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(20.dp),
+                                verticalArrangement = Arrangement.Bottom
+                            ) {
+                                Text(
+                                    text = it.title,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                // Average rating
+                                it.averageRating?.let { avg ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFD700),
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                        Text(
+                                            text = String.format("%.1f/10", avg),
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "(${it.totalRatings ?: 0} ${stringResource(R.string.ratings_label)})",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.White.copy(alpha = 0.7f)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-                
-                HorizontalDivider()
-                
-                // Ratings List
-                when (val state = ratingsState) {
-                    is RatingViewModel.RatingsState.Loading -> LoadingScreen()
-                    is RatingViewModel.RatingsState.Success -> {
-                        if (state.ratings.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
+                    
+                    // Ratings list section
+                    when (val state = ratingsState) {
+                        is RatingViewModel.RatingsState.Loading -> LoadingScreen()
+                        is RatingViewModel.RatingsState.Success -> {
+                            if (state.ratings.isEmpty()) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.no_ratings_yet),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                // Ratings header
                                 Text(
-                                    text = "No hay puntuaciones aún",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = stringResource(R.string.all_ratings),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
-                            }
-                        } else {
-                            LazyColumn(
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                items(state.ratings, key = { it.id }) { rating ->
-                                    Card(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                        )
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.padding(16.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                
+                                LazyColumn(
+                                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    items(state.ratings, key = { it.id }) { rating ->
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                            ),
+                                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                         ) {
                                             Row(
-                                                modifier = Modifier.fillMaxWidth(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                // User info with avatar
+                                                // User info
                                                 Row(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -175,8 +218,9 @@ fun MovieRatingsScreen(
                                                     // Avatar
                                                     Box(
                                                         modifier = Modifier
-                                                            .size(40.dp)
-                                                            .clip(CircleShape),
+                                                            .size(48.dp)
+                                                            .clip(CircleShape)
+                                                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
                                                         contentAlignment = Alignment.Center
                                                     ) {
                                                         if (rating.avatarUrl != null) {
@@ -190,17 +234,33 @@ fun MovieRatingsScreen(
                                                             Icon(
                                                                 imageVector = Icons.Default.Person,
                                                                 contentDescription = null,
-                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                tint = MaterialTheme.colorScheme.primary,
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         }
                                                     }
                                                     
-                                                    Text(
-                                                        text = rating.username ?: "Usuario",
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.SemiBold
-                                                    )
+                                                    Column(
+                                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = rating.username ?: stringResource(R.string.user_default),
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        
+                                                        // Comment
+                                                        rating.comment?.let { comment ->
+                                                            if (comment.isNotBlank()) {
+                                                                Text(
+                                                                    text = comment,
+                                                                    style = MaterialTheme.typography.bodySmall,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                    maxLines = 2
+                                                                )
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                                 
                                                 // Rating and delete button
@@ -208,33 +268,41 @@ fun MovieRatingsScreen(
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                                 ) {
-                                                    Row(
-                                                        verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                    // Rating badge
+                                                    Surface(
+                                                        shape = RoundedCornerShape(12.dp),
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.padding(end = 4.dp)
                                                     ) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Star,
-                                                            contentDescription = null,
-                                                            tint = MaterialTheme.colorScheme.primary,
-                                                            modifier = Modifier.size(20.dp)
-                                                        )
-                                                        Text(
-                                                            text = "${rating.rating.toInt()}/10",
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            color = MaterialTheme.colorScheme.primary,
-                                                            fontWeight = FontWeight.Bold
-                                                        )
+                                                        Row(
+                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Star,
+                                                                contentDescription = null,
+                                                                tint = Color.White,
+                                                                modifier = Modifier.size(18.dp)
+                                                            )
+                                                            Text(
+                                                                text = "${rating.rating.toInt()}",
+                                                                style = MaterialTheme.typography.titleMedium,
+                                                                color = Color.White,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
                                                     }
                                                     
-                                                    // Show delete button only for user's own rating
+                                                    // Delete button
                                                     if (rating.userId == currentUserId) {
                                                         IconButton(
                                                             onClick = { showDeleteDialog = true },
-                                                            modifier = Modifier.size(36.dp)
+                                                            modifier = Modifier.size(40.dp)
                                                         ) {
                                                             Icon(
                                                                 imageVector = Icons.Default.Delete,
-                                                                contentDescription = "Eliminar",
+                                                                contentDescription = stringResource(R.string.delete),
                                                                 tint = MaterialTheme.colorScheme.error,
                                                                 modifier = Modifier.size(20.dp)
                                                             )
@@ -242,33 +310,25 @@ fun MovieRatingsScreen(
                                                     }
                                                 }
                                             }
-                                            
-                                            rating.comment?.let { comment ->
-                                                Text(
-                                                    text = comment,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    is RatingViewModel.RatingsState.Error -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = state.message,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.error
-                            )
+                        is RatingViewModel.RatingsState.Error -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = state.message ?: "",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
+                        else -> {}
                     }
-                    else -> {}
                 }
             }
         }
@@ -278,8 +338,8 @@ fun MovieRatingsScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar Puntuación") },
-            text = { Text("¿Estás seguro de que quieres eliminar tu puntuación de esta película?") },
+            title = { Text(stringResource(R.string.delete_rating)) },
+            text = { Text(stringResource(R.string.delete_rating_confirm)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -297,12 +357,12 @@ fun MovieRatingsScreen(
                         }
                     }
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

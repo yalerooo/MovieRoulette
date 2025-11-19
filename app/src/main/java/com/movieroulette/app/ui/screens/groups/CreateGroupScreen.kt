@@ -8,11 +8,14 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.movieroulette.app.R
 import com.movieroulette.app.ui.components.*
 import com.movieroulette.app.viewmodel.GroupViewModel
 
@@ -22,6 +25,7 @@ fun CreateGroupScreen(
     navController: NavController,
     viewModel: GroupViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     var groupName by remember { mutableStateOf("") }
     var groupNameError by remember { mutableStateOf<String?>(null) }
     
@@ -36,10 +40,10 @@ fun CreateGroupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Crear Grupo") },
+                title = { Text(stringResource(R.string.create_group)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -57,13 +61,13 @@ fun CreateGroupScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
-                text = "Crea un grupo nuevo",
+                text = stringResource(R.string.create_new_group),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
             
             Text(
-                text = "Los miembros del grupo podrán añadir películas y votar juntos",
+                text = stringResource(R.string.group_members_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -74,15 +78,15 @@ fun CreateGroupScreen(
                     groupName = it
                     groupNameError = null
                 },
-                label = "Nombre del grupo",
-                placeholder = "Ej: Familia, Amigos, Cine Club...",
+                label = stringResource(R.string.group_name),
+                placeholder = stringResource(R.string.group_name_placeholder),
                 error = groupNameError,
                 modifier = Modifier.fillMaxWidth()
             )
             
             if (createGroupState is GroupViewModel.CreateGroupState.Error) {
                 Text(
-                    text = (createGroupState as GroupViewModel.CreateGroupState.Error).message,
+                    text = (createGroupState as GroupViewModel.CreateGroupState.Error).message ?: "",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -91,10 +95,10 @@ fun CreateGroupScreen(
             Spacer(modifier = Modifier.weight(1f))
             
             PrimaryButton(
-                text = "Crear Grupo",
+                text = stringResource(R.string.create_group),
                 onClick = {
                     if (groupName.isBlank()) {
-                        groupNameError = "El nombre es requerido"
+                        groupNameError = context.getString(R.string.group_name_required)
                     } else {
                         viewModel.createGroup(groupName)
                     }

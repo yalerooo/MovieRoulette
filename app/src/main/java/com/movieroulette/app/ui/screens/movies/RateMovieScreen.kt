@@ -1,5 +1,6 @@
 package com.movieroulette.app.ui.screens.movies
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -11,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,7 +21,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.movieroulette.app.data.model.toPosterUrl
 import com.movieroulette.app.ui.components.PrimaryButton
-import com.movieroulette.app.ui.components.SecondaryButton
+import com.movieroulette.app.utils.NotificationHelper
 import com.movieroulette.app.viewmodel.MovieViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -35,21 +38,78 @@ fun RateMovieScreen(
     var comment by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val moviesState by viewModel.moviesState.collectAsState()
+    val context = LocalContext.current
+    var hasWatchedMovie by remember { mutableStateOf<Boolean?>(null) }
+    var currentUserId by remember { mutableStateOf<String?>(null) }
     
-    // Load movie details
-    LaunchedEffect(Unit) {
+    // Verificar si el usuario vio la película - recargar cuando cambie movieId
+    LaunchedEffect(movieId) {
         viewModel.loadGroupMovies(groupId, null)
+        currentUserId = viewModel.movieRepository.getCurrentUserId()
+        if (currentUserId != null) {
+            val result = viewModel.movieRepository.hasUserWatchedMovie(movieId, currentUserId!!)
+            hasWatchedMovie = result.getOrNull() ?: false
+        } else {
+            hasWatchedMovie = false
+        }
     }
     
     val movie = (moviesState as? MovieViewModel.MoviesState.Success)?.movies?.find { it.id == movieId }
     
+    // Si el usuario no vio la película, mostrar mensaje y no permitir puntuar
+    if (hasWatchedMovie == false) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(com.movieroulette.app.R.string.rate_movie)) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(Icons.Default.ArrowBack, stringResource(com.movieroulette.app.R.string.back))
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "No puedes puntuar esta película",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Solo los usuarios que vieron la película pueden puntuarla",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { navController.navigateUp() }) {
+                        Text("Volver")
+                    }
+                }
+            }
+        }
+        return
+    }
+    
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Puntuar Película") },
+                title = { Text(stringResource(com.movieroulette.app.R.string.rate_movie)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, "Atrás")
+                        Icon(Icons.Default.ArrowBack, stringResource(com.movieroulette.app.R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -95,7 +155,7 @@ fun RateMovieScreen(
                 
                 // Rating Slider
                 Text(
-                    text = "Tu puntuación",
+                    text = stringResource(com.movieroulette.app.R.string.your_rating),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -123,7 +183,7 @@ fun RateMovieScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 // Slider
                 Column(
@@ -159,32 +219,34 @@ fun RateMovieScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 // Comment (Optional)
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },
-                    label = { Text("Comentario (opcional)") },
+                    label = { Text(stringResource(com.movieroulette.app.R.string.comment_optional)) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp),
-                    maxLines = 3,
+                        .height(80.dp),
+                    maxLines = 2,
                     shape = RoundedCornerShape(12.dp)
                 )
                 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 // Action Buttons
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     PrimaryButton(
-                        text = "Guardar Puntuación",
+                        text = stringResource(com.movieroulette.app.R.string.save_rating),
                         onClick = {
                             scope.launch {
                                 viewModel.addRating(movieId, rating.roundToInt().toDouble(), comment.ifBlank { null })
+                                // Cancelar notificación
+                                NotificationHelper.cancelRatingNotification(context, movieId)
                                 // Reload movies in all states to update the average rating
                                 kotlinx.coroutines.delay(100)
                                 viewModel.loadGroupMovies(groupId, "pending")
@@ -195,13 +257,9 @@ fun RateMovieScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    
-                    SecondaryButton(
-                        text = "Saltar",
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

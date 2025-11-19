@@ -2,10 +2,13 @@ package com.movieroulette.app.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -90,7 +93,8 @@ fun AppTextField(
     enabled: Boolean = true,
     error: String? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardType: androidx.compose.ui.text.input.KeyboardType = androidx.compose.ui.text.input.KeyboardType.Text
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
@@ -106,6 +110,10 @@ fun AppTextField(
             } else {
                 androidx.compose.ui.text.input.VisualTransformation.None
             },
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Next
+            ),
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             shape = RoundedCornerShape(12.dp),
@@ -199,7 +207,7 @@ fun ErrorView(
         if (onRetry != null) {
             Spacer(modifier = Modifier.height(24.dp))
             PrimaryButton(
-                text = "Reintentar",
+                text = stringResource(com.movieroulette.app.R.string.retry),
                 onClick = onRetry,
                 modifier = Modifier.widthIn(max = 200.dp)
             )
@@ -211,7 +219,7 @@ fun ErrorView(
 fun EmptyState(
     title: String,
     message: String,
-    emoji: String = "🎬",
+    showIcon: Boolean = true,
     action: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -222,11 +230,16 @@ fun EmptyState(
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = emoji,
-            style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        if (showIcon) {
+            Icon(
+                imageVector = Icons.Filled.Movie,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(bottom = 16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
         
         Text(
             text = title,
