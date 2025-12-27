@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.movieroulette.app.data.model.*
 import com.movieroulette.app.data.remote.SupabaseConfig
+import com.movieroulette.app.data.repository.AuthRepository
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -14,6 +15,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class FriendsViewModel : ViewModel() {
+    
+    private val authRepository = AuthRepository()
     
     private val _friendsState = MutableStateFlow<FriendsState>(FriendsState.Loading)
     val friendsState: StateFlow<FriendsState> = _friendsState
@@ -69,6 +72,7 @@ class FriendsViewModel : ViewModel() {
     fun loadFriends() {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 _friendsState.value = FriendsState.Loading
                 val currentUserId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: return@launch
                 
@@ -112,6 +116,7 @@ class FriendsViewModel : ViewModel() {
     fun loadFollowing() {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 _followingState.value = FollowingState.Loading
                 val currentUserId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: return@launch
                 
@@ -452,6 +457,9 @@ class FriendsViewModel : ViewModel() {
     fun loadFollowers(context: android.content.Context? = null) {
         viewModelScope.launch {
             try {
+                // Asegurar que la sesión es válida
+                authRepository.ensureSessionValid()
+                
                 _followersState.value = FollowersState.Loading
                 val currentUserId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: return@launch
                 

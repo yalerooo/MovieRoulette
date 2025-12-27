@@ -289,4 +289,42 @@ class AuthRepository {
             }
         }
     }
+
+    suspend fun ensureSessionValid() {
+        withContext(Dispatchers.IO) {
+            try {
+                var session = supabase.auth.currentSessionOrNull()
+                
+                // Si no hay sesión, esperar un momento por si se está restaurando
+                if (session == null) {
+                    android.util.Log.d("AuthRepository", "Session is null in ensureSessionValid, waiting...")
+                    kotlinx.coroutines.delay(1500)
+                    session = supabase.auth.currentSessionOrNull()
+                }
+                
+                if (session != null) {
+                    // Forzar refresco de sesión para asegurar que el token es válido
+                    // Esto ayuda cuando el usuario lleva días sin entrar
+                    try {
+                        supabase.auth.refreshCurrentSession()
+                        android.util.Log.d("AuthRepository", "Session refreshed successfully")
+                    } catch (e: Exception) {
+                        android.util.Log.w("AuthRepository", "Failed to refresh session: ${e.message}")
+                        // No relanzar la excepción para no bloquear la carga si el token aún es válido
+                    }
+                } else {
+                    android.util.Log.w("AuthRepository", "Session is still null after waiting")
+                    // Intentar cargar desde almacenamiento si es posible
+                    try {
+                        supabase.auth.loadFromStorage()
+                        android.util.Log.d("AuthRepository", "Attempted loadFromStorage")
+                    } catch (e: Exception) {
+                        android.util.Log.e("AuthRepository", "Error loading from storage", e)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AuthRepository", "Error in ensureSessionValid", e)
+            }
+        }
+    }
 }

@@ -25,6 +25,7 @@ import com.movieroulette.app.data.local.AuthPreferences
 import com.movieroulette.app.ui.components.*
 import com.movieroulette.app.ui.navigation.Screen
 import com.movieroulette.app.viewmodel.AuthViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,16 +47,15 @@ fun LoginScreen(
     
     // Load saved credentials
     LaunchedEffect(Unit) {
-        authPreferences.rememberMe.collect { remember ->
+        try {
+            val remember = authPreferences.rememberMe.first()
             if (remember) {
-                authPreferences.savedEmail.collect { savedEmail ->
-                    email = savedEmail
-                }
-                authPreferences.savedPassword.collect { savedPassword ->
-                    password = savedPassword
-                }
+                email = authPreferences.savedEmail.first()
+                password = authPreferences.savedPassword.first()
                 rememberMe = true
             }
+        } catch (e: Exception) {
+            // Handle error or ignore
         }
     }
     

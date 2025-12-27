@@ -6,6 +6,7 @@ import com.movieroulette.app.data.model.MovieWithDetails
 import com.movieroulette.app.data.model.TMDBMovie
 import com.movieroulette.app.data.model.TMDBMovieDetails
 import com.movieroulette.app.data.model.TMDBCreditsResponse
+import com.movieroulette.app.data.repository.AuthRepository
 import com.movieroulette.app.data.repository.MovieRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 class MovieViewModel : ViewModel() {
     
     val movieRepository = MovieRepository()
+    private val authRepository = AuthRepository()
     
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Idle)
     val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
@@ -107,6 +109,9 @@ class MovieViewModel : ViewModel() {
         viewModelScope.launch {
             _addMovieState.value = AddMovieState.Loading
             
+            // Ensure session is valid
+            authRepository.ensureSessionValid()
+            
             // First get movie details
             val detailsResult = movieRepository.getMovieDetails(tmdbId)
             if (detailsResult.isFailure) {
@@ -142,6 +147,9 @@ class MovieViewModel : ViewModel() {
             
             targetState.value = MoviesState.Loading
             
+            // Asegurar que la sesión es válida
+            authRepository.ensureSessionValid()
+            
             val result = movieRepository.getGroupMovies(groupId, status)
             targetState.value = if (result.isSuccess) {
                 val movies = result.getOrNull() ?: emptyList()
@@ -170,6 +178,9 @@ class MovieViewModel : ViewModel() {
     
     fun updateMovieStatus(movieId: String, groupId: String, newStatus: String) {
         viewModelScope.launch {
+            // Ensure session is valid
+            authRepository.ensureSessionValid()
+            
             // Actualizar en el servidor
             val result = movieRepository.updateMovieStatus(movieId, groupId, newStatus)
             
@@ -210,6 +221,7 @@ class MovieViewModel : ViewModel() {
     
     fun addRating(movieId: String, rating: Double, comment: String?) {
         viewModelScope.launch {
+            authRepository.ensureSessionValid()
             movieRepository.addRating(movieId, rating, comment)
         }
     }

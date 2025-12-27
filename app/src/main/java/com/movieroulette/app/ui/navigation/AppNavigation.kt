@@ -275,9 +275,12 @@ fun AppNavigation() {
                 val movieId = backStackEntry.arguments?.getString("movieId") ?: return@composable
                 val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
                 MovieRatingsScreen(
-                    navController = navController,
                     movieId = movieId,
-                    groupId = groupId
+                    groupId = groupId,
+                    onDismiss = { navController.popBackStack() },
+                    onRateClick = {
+                        navController.navigate(Screen.RateMovie.createRoute(movieId, groupId))
+                    }
                 )
             }
             

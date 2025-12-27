@@ -80,6 +80,10 @@ class AuthViewModel : ViewModel() {
     fun updateUsername(username: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
+            
+            // Asegurar que la sesión es válida
+            authRepository.ensureSessionValid()
+            
             val result = authRepository.updateUsername(username)
             _uiState.value = if (result.isSuccess) {
                 AuthUiState.Success

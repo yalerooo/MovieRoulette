@@ -24,6 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -56,6 +59,7 @@ import com.movieroulette.app.data.remote.SupabaseConfig
 import io.github.jan.supabase.auth.auth
 import com.movieroulette.app.ui.components.*
 import com.movieroulette.app.ui.navigation.Screen
+import com.movieroulette.app.ui.screens.movies.MovieRatingsScreen
 import com.movieroulette.app.viewmodel.MovieViewModel
 import com.movieroulette.app.viewmodel.GroupViewModel
 import com.movieroulette.app.viewmodel.RatingViewModel
@@ -84,7 +88,7 @@ fun GroupDetailScreen(
     var showRatingDialog by remember { mutableStateOf(false) }
     var selectedMovieForRating by remember { mutableStateOf<Pair<String, String>?>(null) } // movieId, movieTitle
     var showRatingsDialog by remember { mutableStateOf(false) }
-    var selectedMovieForRatings by remember { mutableStateOf<String?>(null) } // movieId
+    var selectedMovieForRatings by remember { mutableStateOf<MovieWithDetails?>(null) } // movie
     var showViewersSelectionDialog by remember { mutableStateOf(false) }
     var selectedMovieForViewers by remember { mutableStateOf<MovieWithDetails?>(null) }
     
@@ -109,6 +113,9 @@ fun GroupDetailScreen(
     
     // Pre-cargar todas las pestañas al inicio para evitar el efecto de carga al cambiar
     LaunchedEffect(Unit) {
+        // Asegurar sesión válida antes de cargar datos
+        groupViewModel.authRepository.ensureSessionValid()
+        
         viewModel.loadGroupMovies(groupId, status = "pending")
         viewModel.loadGroupMovies(groupId, status = "watching")
         viewModel.loadGroupMovies(groupId, status = "watched")
@@ -229,7 +236,7 @@ fun GroupDetailScreen(
                 title = { Text(groupName.ifEmpty { stringResource(com.movieroulette.app.R.string.group) }, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, stringResource(com.movieroulette.app.R.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(com.movieroulette.app.R.string.back))
                     }
                 },
                 actions = {
@@ -275,8 +282,8 @@ fun GroupDetailScreen(
                             selectedMovieForRating = movieId to movieTitle
                             showRatingDialog = true
                         },
-                        onShowRatingsDialog = { movieId ->
-                            selectedMovieForRatings = movieId
+                        onShowRatingsDialog = { movie ->
+                            selectedMovieForRatings = movie
                             showRatingsDialog = true
                         }
                     )
@@ -297,8 +304,8 @@ fun GroupDetailScreen(
                             selectedMovieForRating = movieId to movieTitle
                             showRatingDialog = true
                         },
-                        onShowRatingsDialog = { movieId ->
-                            selectedMovieForRatings = movieId
+                        onShowRatingsDialog = { movie ->
+                            selectedMovieForRatings = movie
                             showRatingsDialog = true
                         },
                         onMovieFinished = { movie ->
@@ -323,8 +330,8 @@ fun GroupDetailScreen(
                             selectedMovieForRating = movieId to movieTitle
                             showRatingDialog = true
                         },
-                        onShowRatingsDialog = { movieId ->
-                            selectedMovieForRatings = movieId
+                        onShowRatingsDialog = { movie ->
+                            selectedMovieForRatings = movie
                             showRatingsDialog = true
                         }
                     )
@@ -341,7 +348,7 @@ fun GroupDetailScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     TabButton(Icons.Default.Refresh, stringResource(com.movieroulette.app.R.string.choose), selected = selectedTab == 0, onClick = { selectedTab = 0 })
-                    TabButton(Icons.Default.List, stringResource(com.movieroulette.app.R.string.pending), selected = selectedTab == 1, onClick = { selectedTab = 1 })
+                    TabButton(Icons.AutoMirrored.Filled.List, stringResource(com.movieroulette.app.R.string.pending), selected = selectedTab == 1, onClick = { selectedTab = 1 })
                     TabButton(Icons.Default.PlayArrow, stringResource(com.movieroulette.app.R.string.watching), selected = selectedTab == 2, onClick = { selectedTab = 2 })
                     TabButton(Icons.Default.Check, stringResource(com.movieroulette.app.R.string.watched), selected = selectedTab == 3, onClick = { selectedTab = 3 })
                 }
@@ -365,17 +372,31 @@ fun GroupDetailScreen(
     
     // Movie Ratings Dialog
     if (showRatingsDialog && selectedMovieForRatings != null) {
-        MovieRatingsDialog(
-            movieId = selectedMovieForRatings!!,
-            groupId = groupId,
-            onDismiss = {
+        Dialog(
+            onDismissRequest = { 
                 showRatingsDialog = false
                 selectedMovieForRatings = null
             },
-            movieViewModel = viewModel,
-            ratingViewModel = viewModel(),
-            navController = navController
-        )
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            MovieRatingsScreen(
+                movie = selectedMovieForRatings!!,
+                movieId = selectedMovieForRatings!!.id,
+                groupId = groupId,
+                onDismiss = {
+                    showRatingsDialog = false
+                    selectedMovieForRatings = null
+                },
+                onRateClick = {
+                    val movieToRate = selectedMovieForRatings!!
+                    showRatingsDialog = false
+                    selectedMovieForRatings = null
+                    navController.navigate(Screen.RateMovie.createRoute(movieToRate.id, groupId))
+                },
+                movieViewModel = viewModel,
+                ratingViewModel = viewModel()
+            )
+        }
     }
     
     // Viewers Selection Dialog
@@ -745,7 +766,7 @@ fun MoviesListContent(
     context: android.content.Context,
     groupName: String,
     onShowRatingDialog: (String, String) -> Unit = { _, _ -> }, // movieId, movieTitle
-    onShowRatingsDialog: (String) -> Unit = { }, // movieId
+    onShowRatingsDialog: (MovieWithDetails) -> Unit = { }, // movie
     onMovieFinished: (MovieWithDetails) -> Unit = { } // movie
 ) {
     var showDeleteDialog by remember { mutableStateOf<MovieWithDetails?>(null) }
@@ -816,7 +837,7 @@ fun MoviesListContent(
                             navController.navigate(Screen.RateMovie.createRoute(movie.id, groupId))
                         },
                         onViewRatings = {
-                            onShowRatingsDialog(movie.id)
+                            onShowRatingsDialog(movie)
                         }
                     )
                 }

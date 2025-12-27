@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.movieroulette.app.data.model.Movie
 import com.movieroulette.app.data.model.UserProfile
 import com.movieroulette.app.data.remote.SupabaseConfig
+import com.movieroulette.app.data.repository.AuthRepository
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 class ProfileViewModel : ViewModel() {
+    
+    private val authRepository = AuthRepository()
     
     private val _statsState = MutableStateFlow<StatsState>(StatsState.Loading)
     val statsState: StateFlow<StatsState> = _statsState
@@ -47,6 +50,7 @@ class ProfileViewModel : ViewModel() {
     fun loadUserStats() {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 val userId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: run {
                     _statsState.value = StatsState.Error("Usuario no autenticado")
                     return@launch
@@ -138,6 +142,7 @@ class ProfileViewModel : ViewModel() {
     fun loadRecentMovies() {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 val userId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: run {
                     _recentMoviesState.value = RecentMoviesState.Error("Usuario no autenticado")
                     return@launch
@@ -200,6 +205,7 @@ class ProfileViewModel : ViewModel() {
     fun loadFavoriteMovies() {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 val userId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: run {
                     _favoriteMoviesState.value = FavoriteMoviesState.Error("Usuario no autenticado")
                     return@launch
@@ -228,6 +234,7 @@ class ProfileViewModel : ViewModel() {
     fun addFavorite(tmdbId: Int, title: String, posterPath: String?) {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 Log.d("ProfileViewModel", "Adding favorite: $title (tmdbId: $tmdbId)")
                 val userId = SupabaseConfig.client.auth.currentUserOrNull()?.id
                 
@@ -277,6 +284,7 @@ class ProfileViewModel : ViewModel() {
     fun removeFavorite(tmdbId: Int) {
         viewModelScope.launch {
             try {
+                authRepository.ensureSessionValid()
                 val userId = SupabaseConfig.client.auth.currentUserOrNull()?.id ?: return@launch
                 
                 SupabaseConfig.client
@@ -299,6 +307,7 @@ class ProfileViewModel : ViewModel() {
     // Métodos para cargar perfil de otros usuarios
     suspend fun loadUserProfileById(userId: String): UserProfile? {
         return try {
+            authRepository.ensureSessionValid()
             SupabaseConfig.client.from("profiles")
                 .select {
                     filter {
@@ -314,6 +323,7 @@ class ProfileViewModel : ViewModel() {
     
     suspend fun loadUserStatsByUserId(userId: String) {
         try {
+            authRepository.ensureSessionValid()
             _statsState.value = StatsState.Loading
             
             // Películas valoradas
@@ -349,6 +359,7 @@ class ProfileViewModel : ViewModel() {
         Log.d("ProfileViewModel", "=== loadRecentMoviesByUserId CALLED - START ===")
         Log.d("ProfileViewModel", "=== loadRecentMoviesByUserId called with userId: $userId ===")
         try {
+            authRepository.ensureSessionValid()
             Log.d("ProfileViewModel", "Inside try block")
             _recentMoviesState.value = RecentMoviesState.Loading
             Log.d("ProfileViewModel", "State set to Loading")
@@ -415,6 +426,7 @@ class ProfileViewModel : ViewModel() {
     suspend fun loadFavoriteMoviesByUserId(userId: String) {
         Log.d("ProfileViewModel", "=== loadFavoriteMoviesByUserId called with userId: $userId ===")
         try {
+            authRepository.ensureSessionValid()
             _favoriteMoviesState.value = FavoriteMoviesState.Loading
             Log.d("ProfileViewModel", "Favorites state set to Loading")
             

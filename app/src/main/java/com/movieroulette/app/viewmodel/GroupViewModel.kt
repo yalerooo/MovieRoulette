@@ -62,6 +62,9 @@ class GroupViewModel : ViewModel() {
         viewModelScope.launch {
             _groupsState.value = GroupsState.Loading
             
+            // Asegurar que la sesión es válida antes de cargar
+            authRepository.ensureSessionValid()
+            
             val result = groupRepository.getUserGroups()
             _groupsState.value = if (result.isSuccess) {
                 val groups = result.getOrNull() ?: emptyList()
@@ -79,6 +82,9 @@ class GroupViewModel : ViewModel() {
     fun loadUserProfile() {
         viewModelScope.launch {
             _userProfileState.value = UserProfileState.Loading
+            
+            // Asegurar que la sesión es válida antes de cargar
+            authRepository.ensureSessionValid()
             
             val result = groupRepository.getUserProfile()
             _userProfileState.value = if (result.isSuccess) {
@@ -177,6 +183,9 @@ class GroupViewModel : ViewModel() {
     fun loadGroups() {
         viewModelScope.launch {
             _uiState.value = GroupUiState.Loading
+            
+            // Asegurar que la sesión es válida antes de cargar
+            authRepository.ensureSessionValid()
             
             val result = groupRepository.getUserGroups()
             _uiState.value = if (result.isSuccess) {
